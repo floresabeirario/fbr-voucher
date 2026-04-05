@@ -786,6 +786,8 @@ function initCardInteraction() {
   const gatefold = document.getElementById('gatefold');
   const wrapper  = document.getElementById('cardWrapper');
   const hint     = document.getElementById('interactHint');
+  const wfLeft   = document.getElementById('wingFrontLeft');
+  const wfRight  = document.getElementById('wingFrontRight');
 
   let ry = -6, rx = 3;   /* current rotation (lerped toward target) */
   let ty = -6, tx = 3;   /* target rotation — accumulates with drag  */
@@ -801,6 +803,15 @@ function initCardInteraction() {
     ry += (ty - ry) * .10;
     rx += (tx - rx) * .10;
     tilt.style.transform = `perspective(1400px) rotateY(${ry}deg) rotateX(${rx}deg)`;
+
+    /* Chrome Android ignores backface-visibility in nested preserve-3d contexts.
+       Manually hide wing fronts when the closed card is rotated to its back face. */
+    const normRy   = ((ry % 360) + 360) % 360;
+    const atBack   = normRy > 90 && normRy < 270;
+    const hideWings = !isOpen && atBack;
+    wfLeft.style.visibility  = hideWings ? 'hidden' : '';
+    wfRight.style.visibility = hideWings ? 'hidden' : '';
+
     requestAnimationFrame(tick);
   })();
 
