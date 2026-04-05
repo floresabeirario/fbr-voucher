@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vale Presente · Flores à Beira-Rio</title>
+<meta name="description" content="O teu vale presente Flores à Beira-Rio — preservação botânica artesanal.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #3D6B5E;
+    --green-dark: #0F1E1A;
+    --green-mid: #2a4f45;
+    --cream: #FAF7F0;
+    --cream-dark: #f0ead8;
+    --terracotta: #C4846B;
+    --gold: #B8954A;
+    --gold-light: #d4b06e;
+    --card-w: 420px;
+    --card-h: 280px;
+    --env-w: 480px;
+    --env-h: 320px;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  /* Fundo com textura subtil */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 120% 80% at 20% 0%, rgba(61,107,94,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 80% 60% at 80% 100%, rgba(184,149,74,0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2.5rem;
+    width: 100%;
+  }
+
+  /* Logo / topo */
+  .brand {
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s ease forwards;
+  }
+
+  .brand-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+
+  .brand-tagline {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    color: var(--terracotta);
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+    font-weight: 300;
+  }
+
+  /* Área do envelope */
+  .envelope-scene {
+    position: relative;
+    width: var(--env-w);
+    height: var(--env-h);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s ease forwards;
+  }
+
+  /* Sombra do envelope no chão */
+  .envelope-shadow {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 380px;
+    height: 24px;
+    background: radial-gradient(ellipse, rgba(15,30,26,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    transition: all 0.6s ease;
+  }
+
+  .envelope-shadow.open {
+    width: 320px;
+    opacity: 0.6;
+  }
+
+  /* Envelope */
+  .envelope {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    perspective: 1200px;
+  }
+
+  /* Corpo do envelope */
+  .env-body {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #f5ede0 0%, #ede2ce 100%);
+    border-radius: 4px 4px 8px 8px;
+    box-shadow:
+      0 8px 32px rgba(15,30,26,0.12),
+      0 2px 8px rgba(15,30,26,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.5);
+    overflow: hidden;
+  }
+
+  /* Padrão interior do envelope */
+  .env-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(61,107,94,0.04) 0px, rgba(61,107,94,0.04) 1px, transparent 1px, transparent 12px),
+      repeating-linear-gradient(-45deg, rgba(61,107,94,0.04) 0px, rgba(61,107,94,0.04) 1px, transparent 1px, transparent 12px);
+  }
+
+  /* Triângulo central do envelope (parte de baixo) */
+  .env-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60%;
+    overflow: hidden;
+  }
+
+  .env-bottom::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 200%;
+    background: linear-gradient(180deg, #d8c9ae 0%, #cdbfa8 100%);
+    clip-path: polygon(0 100%, 50% 0%, 100% 100%);
+  }
+
+  /* Triângulos laterais */
+  .env-sides {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .env-sides::before,
+  .env-sides::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 55%;
+    background: #e8d8c0;
+  }
+
+  .env-sides::before {
+    left: 0;
+    clip-path: polygon(0 0, 0 100%, 100% 50%);
+    background: linear-gradient(90deg, #d8c9ae, #e8d8c0);
+  }
+
+  .env-sides::after {
+    right: 0;
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+    background: linear-gradient(-90deg, #d8c9ae, #e8d8c0);
+  }
+
+  /* Lacre / decoração central */
+  .env-seal {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    z-index: 5;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+  }
+
+  .env-seal svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Aba de cima */
+  .env-flap {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 55%;
+    transform-origin: top center;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+  }
+
+  .env-flap-face {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: 4px 4px 0 0;
+  }
+
+  .env-flap-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #f5ede0 0%, #e8d5bb 100%);
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  .env-flap-face::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(61,107,94,0.2), transparent);
+  }
+
+  .envelope.open .env-flap {
+    transform: rotateX(-180deg);
+  }
+
+  .envelope.open .env-seal {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+
+  /* Texto de clique */
+  .click-hint {
+    position: absolute;
+    bottom: -48px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.4s;
+    font-weight: 300;
+  }
+
+  .click-hint::before,
+  .click-hint::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--green);
+    opacity: 0.4;
+  }
+
+  .envelope.open ~ .click-hint {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Cartão que sai do envelope */
+  .card-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--card-w);
+    perspective: 1200px;
+    z-index: 4;
+    transition: top 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.6s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .card-wrapper.rising {
+    top: calc(-1 * var(--card-h) * 0.3);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .card-wrapper.risen {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    width: var(--card-w);
+    margin: 0 auto;
+  }
+
+  /* O cartão 3D em si */
+  .card-3d {
+    width: var(--card-w);
+    height: var(--card-h);
+    transform-style: preserve-3d;
+    transition: transform 0.1s ease;
+    transform: rotateY(-8deg) rotateX(4deg);
+    cursor: grab;
+    will-change: transform;
+    user-select: none;
+  }
+
+  .card-3d:active {
+    cursor: grabbing;
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    backface-visibility: hidden;
+  }
+
+  /* Frente do cartão */
+  .card-front {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 40%, var(--green) 100%);
+    box-shadow:
+      0 20px 60px rgba(15,30,26,0.35),
+      0 4px 16px rgba(15,30,26,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 0 0 1px rgba(255,255,255,0.06);
+    display: flex;
+    flex-direction: column;
+    padding: 28px 32px;
+    overflow: hidden;
+  }
+
+  /* Padrão botânico de fundo */
+  .card-front::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg opacity='0.06' stroke='%23FAF7F0' fill='none' stroke-width='0.7'%3E%3Cellipse cx='60' cy='60' rx='24' ry='36' transform='rotate(0 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='24' ry='36' transform='rotate(45 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='24' ry='36' transform='rotate(90 60 60)'/%3E%3Cellipse cx='60' cy='60' rx='24' ry='36' transform='rotate(135 60 60)'/%3E%3Ccircle cx='60' cy='60' r='4'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 120px 120px;
+    opacity: 1;
+  }
+
+  /* Brilho diagonal */
+  .card-front::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+    border-radius: 12px;
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .card-brand {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--cream);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 300;
+    opacity: 0.8;
+    line-height: 1.4;
+  }
+
+  .card-brand strong {
+    display: block;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    font-weight: 400;
+    opacity: 1;
+  }
+
+  .card-value-badge {
+    background: rgba(184,149,74,0.18);
+    border: 1px solid rgba(184,149,74,0.5);
+    border-radius: 4px;
+    padding: 6px 12px;
+    text-align: right;
+  }
+
+  .card-value-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    opacity: 0.8;
+    font-weight: 300;
+  }
+
+  .card-value-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--gold-light);
+    line-height: 1.1;
+    margin-top: 2px;
+  }
+
+  .card-divider {
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(184,149,74,0.6), transparent);
+    margin: auto 0 12px;
+  }
+
+  .card-middle {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .card-to-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(250,247,240,0.45);
+    font-weight: 300;
+  }
+
+  .card-recipient {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--cream);
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+  }
+
+  .card-from-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .card-from-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(250,247,240,0.4);
+    font-weight: 300;
+    flex-shrink: 0;
+  }
+
+  .card-sender {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: rgba(250,247,240,0.7);
+    font-style: italic;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .card-validity {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: rgba(250,247,240,0.3);
+    font-weight: 300;
+  }
+
+  .card-code {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: rgba(250,247,240,0.25);
+    font-weight: 300;
+    font-family: 'Jost', monospace;
+  }
+
+  /* Verso do cartão */
+  .card-back {
+    background: linear-gradient(135deg, #f5ede0 0%, #ede2ce 100%);
+    transform: rotateY(180deg);
+    box-shadow:
+      0 20px 60px rgba(15,30,26,0.35),
+      0 4px 16px rgba(15,30,26,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 32px;
+    gap: 12px;
+  }
+
+  .card-back-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 400;
+  }
+
+  .card-back-line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .card-back-url {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--terracotta);
+    text-transform: lowercase;
+  }
+
+  .card-back-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: var(--green);
+    text-align: center;
+    line-height: 1.6;
+    font-style: italic;
+    opacity: 0.7;
+    max-width: 280px;
+  }
+
+  /* Reflexo na parte de baixo do cartão */
+  .card-3d-edge {
+    position: absolute;
+    bottom: 0; left: 4px; right: 4px;
+    height: 4px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 0 0 12px 12px;
+    transform: translateY(100%) rotateX(-90deg);
+    transform-origin: top center;
+    backface-visibility: hidden;
+  }
+
+  /* Instrução de rotação */
+  .rotate-hint {
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    text-align: center;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .rotate-hint.visible {
+    opacity: 0.5;
+  }
+
+  .rotate-hint::before,
+  .rotate-hint::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--green);
+    opacity: 0.4;
+  }
+
+  /* CTA final */
+  .cta-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .cta-area.visible {
+    opacity: 1;
+  }
+
+  .cta-message {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--green);
+    text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 28px;
+    background: transparent;
+    border: 1px solid rgba(61,107,94,0.35);
+    border-radius: 2px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--green);
+    text-decoration: none;
+    font-weight: 400;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+  }
+
+  .cta-btn:hover {
+    background: var(--green);
+    color: var(--cream);
+    border-color: var(--green);
+  }
+
+  /* Rodapé */
+  .footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s ease forwards;
+  }
+
+  .footer-text {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: rgba(61,107,94,0.4);
+    text-transform: uppercase;
+    font-weight: 300;
+  }
+
+  /* Animações */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 520px) {
+    :root {
+      --card-w: 320px;
+      --card-h: 215px;
+      --env-w: 360px;
+      --env-h: 240px;
+    }
+
+    .card-recipient { font-size: 1.3rem; }
+    .card-value-amount { font-size: 1.2rem; }
+    .card-front { padding: 20px 22px; }
+    .card-back { padding: 20px 22px; }
+    .card-brand strong { font-size: 0.8rem; }
+  }
+
+  @media (max-width: 380px) {
+    :root {
+      --card-w: 280px;
+      --card-h: 190px;
+      --env-w: 310px;
+      --env-h: 210px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="scene">
+
+  <!-- Cabeçalho da marca -->
+  <div class="brand">
+    <div class="brand-name">Flores à Beira-Rio</div>
+    <div class="brand-tagline">Vale Presente · Preservação Botânica</div>
+  </div>
+
+  <!-- Cena do envelope + cartão -->
+  <div class="envelope-scene" id="envelopeScene">
+
+    <div class="envelope-shadow" id="envShadow"></div>
+
+    <!-- O cartão fica dentro, mas sobe por cima -->
+    <div class="card-wrapper" id="cardWrapper">
+      <div class="card-3d" id="card3d">
+
+        <!-- Frente do cartão -->
+        <div class="card-face card-front">
+          <div class="card-content">
+
+            <div class="card-top">
+              <div class="card-brand">
+                Flores à Beira<br>
+                <strong>Rio</strong>
+              </div>
+              <div class="card-value-badge">
+                <div class="card-value-label">Vale</div>
+                <div class="card-value-amount" id="cardValue">250 €</div>
+              </div>
+            </div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-middle">
+              <div class="card-to-label">Para</div>
+              <div class="card-recipient" id="cardRecipient">Sofia &amp; Miguel</div>
+              <div class="card-from-line">
+                <span class="card-from-label">De</span>
+                <span class="card-sender" id="cardSender">Família Rodrigues</span>
+              </div>
+            </div>
+
+            <div class="card-bottom">
+              <div class="card-validity">Válido por 12 meses</div>
+              <div class="card-code" id="cardCode">FBR·2025·001</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Verso do cartão -->
+        <div class="card-face card-back">
+          <div class="card-back-logo">Flores à Beira-Rio</div>
+          <div class="card-back-line"></div>
+          <div class="card-back-url">floresabeirario.pt</div>
+          <div class="card-back-desc">
+            Preservação artesanal de buquês de casamento<br>com vidro museológico UltraVue UV70.
+          </div>
+          <div class="card-back-line"></div>
+          <div class="card-validity" style="color: var(--green); opacity: 0.5; font-size: 0.62rem; letter-spacing: 0.12em;">
+            Coimbra, Portugal · info@floresabeirario.pt
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Envelope (fica por baixo do cartão depois de aberto) -->
+    <div class="envelope" id="envelope" onclick="openEnvelope()">
+      <div class="env-body">
+        <div class="env-sides"></div>
+        <div class="env-bottom"></div>
+      </div>
+      <div class="env-flap" id="envFlap">
+        <div class="env-flap-face"></div>
+      </div>
+      <!-- Lacre decorativo -->
+      <div class="env-seal" id="envSeal">
+        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="22" cy="22" r="21" fill="#3D6B5E" fill-opacity="0.12" stroke="#3D6B5E" stroke-width="0.8" stroke-opacity="0.4"/>
+          <circle cx="22" cy="22" r="16" stroke="#B8954A" stroke-width="0.6" stroke-opacity="0.5"/>
+          <!-- Flor estilizada -->
+          <g stroke="#3D6B5E" stroke-width="0.8" stroke-opacity="0.7" fill="none">
+            <ellipse cx="22" cy="22" rx="4" ry="7" transform="rotate(0 22 22)"/>
+            <ellipse cx="22" cy="22" rx="4" ry="7" transform="rotate(60 22 22)"/>
+            <ellipse cx="22" cy="22" rx="4" ry="7" transform="rotate(120 22 22)"/>
+          </g>
+          <circle cx="22" cy="22" r="2.5" fill="#B8954A" fill-opacity="0.5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="click-hint" id="clickHint">clica para abrir</div>
+
+  </div>
+
+  <!-- Dica de rotação (aparece depois de aberto) -->
+  <div class="rotate-hint" id="rotateHint">arrasta para rodar o cartão</div>
+
+  <!-- CTA (aparece depois) -->
+  <div class="cta-area" id="ctaArea">
+    <div class="cta-message" id="ctaMessage">
+      Uma recordação para toda a vida.
+    </div>
+    <a href="https://floresabeirario.pt/como-funciona" class="cta-btn" target="_blank">
+      Como funciona →
+    </a>
+  </div>
+
+  <!-- Rodapé -->
+  <div class="footer">
+    <div class="footer-text">© Flores à Beira-Rio · Ceira, Coimbra</div>
+  </div>
+
+</div>
+
+<script>
+// --- Leitura de parâmetros URL (para depois ligar ao Google Sheets) ---
+// Exemplo de URL: voucher.floresabeirario.pt?para=Sofia+%26+Miguel&de=Família+Rodrigues&valor=250&codigo=FBR-2025-001
+(function loadParams() {
+  const params = new URLSearchParams(window.location.search);
+
+  const recipient = params.get('para');
+  const sender    = params.get('de');
+  const value     = params.get('valor');
+  const code      = params.get('codigo');
+  const msg       = params.get('mensagem');
+
+  if (recipient) document.getElementById('cardRecipient').textContent = recipient;
+  if (sender)    document.getElementById('cardSender').textContent    = sender;
+  if (value)     document.getElementById('cardValue').textContent     = value + ' €';
+  if (code)      document.getElementById('cardCode').textContent      = code;
+  if (msg)       document.getElementById('ctaMessage').textContent    = msg;
+})();
+
+// --- Estado da animação ---
+let envelopeOpen = false;
+let cardRisen    = false;
+
+function openEnvelope() {
+  if (envelopeOpen) return;
+  envelopeOpen = true;
+
+  const envelope  = document.getElementById('envelope');
+  const shadow    = document.getElementById('envShadow');
+  const clickHint = document.getElementById('clickHint');
+
+  // Abre o envelope
+  envelope.classList.add('open');
+  shadow.classList.add('open');
+  clickHint.style.opacity = '0';
+  envelope.style.cursor = 'default';
+
+  // Após a aba abrir, o cartão começa a subir
+  setTimeout(riseCard, 500);
+}
+
+function riseCard() {
+  const wrapper = document.getElementById('cardWrapper');
+  wrapper.style.transition = 'top 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease';
+  wrapper.classList.add('rising');
+
+  // Depois do cartão subir, reposiciona no layout
+  setTimeout(settleCard, 1100);
+}
+
+function settleCard() {
+  const wrapper = document.getElementById('cardWrapper');
+  const scene   = document.getElementById('envelopeScene');
+
+  // Tira do envelope e coloca no flow normal
+  wrapper.style.transition = 'none';
+  wrapper.classList.remove('rising');
+  wrapper.classList.add('risen');
+
+  // Move o wrapper para fora do envelopeScene
+  scene.parentNode.insertBefore(wrapper, scene.nextSibling);
+
+  // Ajusta altura da cena (fica só o envelope)
+  scene.style.height = 'var(--env-h)';
+
+  cardRisen = true;
+
+  // Mostra dica e CTA
+  setTimeout(() => {
+    document.getElementById('rotateHint').classList.add('visible');
+    document.getElementById('ctaArea').classList.add('visible');
+  }, 400);
+
+  // Inicia o efeito de hover 3D ligeiro
+  initCardTilt();
+}
+
+// --- Interação 3D do cartão ---
+function initCardTilt() {
+  const card = document.getElementById('card3d');
+  const wrapper = document.getElementById('cardWrapper');
+  let dragging = false;
+  let startX = 0, startY = 0;
+  let currentY = -8, currentX = 4; // rotação inicial
+  let targetY = currentY, targetX = currentX;
+  let flipped = false;
+
+  // Animação suave contínua
+  function animate() {
+    currentY += (targetY - currentY) * 0.08;
+    currentX += (targetX - currentX) * 0.08;
+    const flipDeg = flipped ? 180 : 0;
+    card.style.transform = `rotateY(${currentY + flipDeg}deg) rotateX(${currentX}deg)`;
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Mouse
+  wrapper.addEventListener('mousedown', (e) => {
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    card.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) {
+      // Hover suave sem arrastar
+      const rect = wrapper.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) / (rect.width / 2);
+      const dy = (e.clientY - cy) / (rect.height / 2);
+      if (!dragging) {
+        targetY = (flipped ? 180 : 0) + dx * 12;
+        targetX = -dy * 8;
+      }
+      return;
+    }
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    targetY = (flipped ? 180 : 0) + dx * 0.5;
+    targetX = -dy * 0.3;
+  });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+
+    // Virar o cartão se arrastou bastante
+    if (Math.abs(dx) > 80) {
+      flipped = !flipped;
+      document.getElementById('rotateHint').style.opacity = '0';
+    }
+
+    dragging = false;
+    card.style.cursor = 'grab';
+
+    // Volta à rotação de repouso
+    targetY = flipped ? 172 : -8;
+    targetX = flipped ? -2 : 4;
+  });
+
+  // Touch
+  let touchStartX = 0, touchStartY = 0;
+
+  wrapper.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  wrapper.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+    targetY = (flipped ? 180 : 0) + dx * 0.6;
+    targetX = -dy * 0.4;
+  }, { passive: true });
+
+  wrapper.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 60) {
+      flipped = !flipped;
+      document.getElementById('rotateHint').style.opacity = '0';
+    }
+    targetY = flipped ? 172 : -8;
+    targetX = flipped ? -2 : 4;
+  });
+
+  // Clique duplo / tap para virar
+  let lastTap = 0;
+  wrapper.addEventListener('touchend', () => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      flipped = !flipped;
+      targetY = flipped ? 172 : -8;
+      targetX = flipped ? -2 : 4;
+    }
+    lastTap = now;
+  });
+}
+</script>
+</body>
+</html>
