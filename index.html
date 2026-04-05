@@ -83,6 +83,8 @@ body::before {
   position: relative;
   width: var(--env-w); height: var(--env-h);
   opacity: 0; animation: fadeUp .8s .5s ease forwards;
+  overflow: visible;
+  transition: height .9s cubic-bezier(.4,0,.2,1), opacity .7s ease;
 }
 
 .envelope-shadow {
@@ -96,6 +98,11 @@ body::before {
 
 .envelope {
   position: absolute; inset: 0; cursor: pointer; perspective: 1200px;
+  z-index: 3;
+  transition: opacity .9s ease;
+}
+.envelope.fading {
+  opacity: 0; pointer-events: none;
 }
 .env-body {
   position: absolute; inset: 0;
@@ -136,7 +143,7 @@ body::before {
 .env-flap {
   position: absolute; top: 0; left: 0; right: 0; height: 55%;
   transform-origin: top center; transform-style: preserve-3d;
-  transition: transform .8s cubic-bezier(.4,0,.2,1); z-index: 10;
+  transition: transform .95s cubic-bezier(.34,1.2,.64,1); z-index: 10;
 }
 .env-flap-face {
   position: absolute; inset: 0; overflow: hidden; border-radius: 4px 4px 0 0;
@@ -175,29 +182,37 @@ body::before {
 
 /* ── Card wrapper ──────────────────────── */
 .card-wrapper {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
-  transition: top .8s cubic-bezier(.4,0,.2,1), opacity .6s ease;
-  opacity: 0; pointer-events: none;
+  position: absolute;
+  top: 12px;          /* card top just inside the envelope opening */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;         /* below envelope (z-index:3) — body covers card while inside */
+  opacity: 0;
+  pointer-events: none;
+  transition: top 1.2s cubic-bezier(.22,1,.36,1), opacity .55s ease .15s;
 }
 .card-wrapper.rising {
-  top: calc(-1 * var(--card-h) * 0.35);
-  opacity: 1; pointer-events: auto;
+  top: calc(-1 * var(--card-h) - 24px); /* card fully above envelope */
+  opacity: 1;
 }
 .card-wrapper.risen {
   position: relative; top: auto; left: auto;
-  transform: none; opacity: 1; pointer-events: auto; margin: 0 auto;
+  transform: none; z-index: auto;
+  pointer-events: auto; margin: 0 auto;
 }
 
 /* ── 3-D perspective shell ─────────────── */
-.card-perspective { perspective: 1400px; }
+.card-perspective {
+  perspective: 1400px;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
 
 .card-tilt {
   position: relative;
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transform: rotateY(-6deg) rotateX(3deg);
-  will-change: transform;
   cursor: grab; user-select: none; -webkit-user-select: none;
 }
 .card-tilt:active { cursor: grabbing; }
@@ -230,6 +245,7 @@ body::before {
   width:  var(--open-w);
   height: var(--card-h);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 /* Shadow sits behind the wings, only over the closed-card area */
@@ -324,6 +340,7 @@ body::before {
   position: absolute; top: 0; bottom: 0;
   width: var(--wing-w);
   transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
   transition: transform 1.15s cubic-bezier(.4,0,.2,1);
   z-index: 2;
 }
@@ -624,8 +641,10 @@ async function loadPDF() {
     const page1  = await pdf.getPage(1);
     const page2  = pdf.numPages >= 2 ? await pdf.getPage(2) : page1;
 
-    /* Render at a resolution that looks sharp on the screen */
-    const targetPx = Math.min(window.innerWidth * 1.8, 1520);
+    /* Render at a resolution that looks sharp on the screen,
+       accounting for high-DPI (retina) mobile displays */
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    const targetPx = Math.min(window.innerWidth * dpr * 1.8, 2400);
 
     /* Render both pages in parallel */
     [insideDataUrl, coverDataUrl] = await Promise.all([
@@ -712,34 +731,51 @@ function openEnvelope() {
   env.style.cursor = 'default';
   env.onclick = null;
 
-  setTimeout(riseCard, 480);
+  setTimeout(riseCard, 600);
 }
 
 function riseCard() {
   const w = document.getElementById('cardWrapper');
-  w.style.transition = 'top .95s cubic-bezier(.22,1,.36,1), opacity .55s ease';
   w.classList.add('rising');
-  setTimeout(settleCard, 1150);
+  setTimeout(settleCard, 1350);
 }
 
 function settleCard() {
-  const wrapper = document.getElementById('cardWrapper');
-  const scene   = document.getElementById('envelopeScene');
+  const wrapper  = document.getElementById('cardWrapper');
+  const scene    = document.getElementById('envelopeScene');
+  const envelope = document.getElementById('envelope');
 
-  wrapper.style.transition = 'none';
-  wrapper.classList.remove('rising');
-  wrapper.classList.add('risen');
-
-  /* Move card into normal page flow, after the envelope scene */
-  scene.parentNode.insertBefore(wrapper, scene.nextSibling);
-  scene.style.height = 'var(--env-h)';
+  /* Briefly fade card out — hides the positional jump from absolute → flow */
+  wrapper.style.transition = 'opacity .18s ease';
+  wrapper.style.opacity    = '0';
 
   setTimeout(() => {
-    document.getElementById('interactHint').classList.add('visible');
-    document.getElementById('ctaArea').classList.add('visible');
-  }, 350);
+    /* Reposition while hidden */
+    wrapper.style.transition = 'none';
+    wrapper.classList.remove('rising');
+    wrapper.classList.add('risen');
+    scene.parentNode.insertBefore(wrapper, scene);
 
-  initCardInteraction();
+    /* Fade envelope + shadow + collapse scene height */
+    envelope.classList.add('fading');
+    const shadow = document.getElementById('envShadow');
+    shadow.style.transition = 'opacity .4s ease';
+    shadow.style.opacity    = '0';
+    scene.style.height = '0';
+
+    /* Fade card back in at new position */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      wrapper.style.transition = 'opacity .38s ease';
+      wrapper.style.opacity    = '1';
+    }));
+
+    setTimeout(() => {
+      document.getElementById('interactHint').classList.add('visible');
+      document.getElementById('ctaArea').classList.add('visible');
+    }, 520);
+
+    initCardInteraction();
+  }, 220);
 }
 
 /* ═══════════════════════════════════════════
