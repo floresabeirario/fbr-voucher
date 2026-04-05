@@ -353,16 +353,31 @@ body::before {
 .wing-left  .wing-front { background-position: 100% 50%; }
 .wing-right .wing-front { background-position:   0% 50%; }
 
-/* BACK face = back of the closed card (centre 50% of PDF page 2).
-   background-size: 400% → same scale as wing-front.
-   Left wing back shows 25–50% of image; right shows 50–75%. */
+/* BACK face – intentionally transparent; back panel handled by .gatefold-back */
 .wing-back {
   transform: rotateY(180deg);
-  background-size: 400% 100%;
-  background-repeat: no-repeat;
 }
-.wing-left  .wing-back { background-position: 66.67% 50%; }
-.wing-right .wing-back { background-position: 33.33% 50%; }
+
+/* Single back panel covering the full centre 50% of the closed card.
+   rotateY(180deg) faces it backward; scaleX(-1) counters the mirror so
+   the image reads correctly when the card is tilted to show its back.
+   background-size: 200% → image rendered at full open-w; position 50%
+   shows exactly the centre 50% of the PDF page 2. */
+.gatefold-back {
+  position: absolute;
+  left: var(--wing-w);
+  width: calc(var(--wing-w) * 2);
+  top: 0; bottom: 0;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg) scaleX(-1);
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* Open-card shadow (replaces cover-shadow once open) */
 .gatefold-inside-shadow {
@@ -488,16 +503,19 @@ body::before {
             <!-- Inside spread – page 1 of PDF (full interior design) -->
             <div class="gatefold-inside" id="gatefoldInside"></div>
 
+            <!-- Back panel – centre 50% of PDF page 2 (single unbroken surface) -->
+            <div class="gatefold-back" id="gatefoldBack"></div>
+
             <!-- LEFT wing  – outer face = left  25% of PDF page 2 (panel 1 = cover left) -->
             <div class="wing wing-left" id="wingLeft">
               <div class="wing-face wing-front" id="wingFrontLeft"></div>
-              <div class="wing-face wing-back" id="wingBackLeft"></div>
+              <div class="wing-face wing-back"></div>
             </div>
 
             <!-- RIGHT wing – outer face = right 25% of PDF page 2 (panel 2 = cover right) -->
             <div class="wing wing-right" id="wingRight">
               <div class="wing-face wing-front" id="wingFrontRight"></div>
-              <div class="wing-face wing-back" id="wingBackRight"></div>
+              <div class="wing-face wing-back"></div>
             </div>
 
           </div><!-- /gatefold -->
@@ -639,8 +657,7 @@ function applyToCard(page2) {
      at 100% shows the rightmost 25%.                                     */
   document.getElementById('wingFrontLeft').style.backgroundImage  = `url('${coverDataUrl}')`;
   document.getElementById('wingFrontRight').style.backgroundImage = `url('${coverDataUrl}')`;
-  document.getElementById('wingBackLeft').style.backgroundImage   = `url('${coverDataUrl}')`;
-  document.getElementById('wingBackRight').style.backgroundImage  = `url('${coverDataUrl}')`;
+  document.getElementById('gatefoldBack').style.backgroundImage   = `url('${coverDataUrl}')`;
 
   /* Hide loading overlay */
   const loading = document.getElementById('gatefoldLoading');
