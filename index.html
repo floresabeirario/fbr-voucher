@@ -230,6 +230,7 @@ body::before {
   width:  var(--open-w);
   height: var(--card-h);
   transform-style: preserve-3d;
+  background: var(--green-dark);
 }
 
 /* Shadow sits behind the wings, only over the closed-card area */
@@ -808,12 +809,12 @@ function initCardInteraction() {
       gatefold.classList.add('open');
       setTimeout(() => {
         document.getElementById('gatefoldInside').classList.add('visible');
-      }, 380);
+      }, 200);
       hint.textContent = 'clica novamente para fechar';
       hint.classList.add('visible');
     } else {
       document.getElementById('gatefoldInside').classList.remove('visible');
-      setTimeout(() => { gatefold.classList.remove('open'); }, 200);
+      setTimeout(() => { gatefold.classList.remove('open'); }, 380);
       hint.textContent = 'clica no cartão para o abrir';
     }
   }
