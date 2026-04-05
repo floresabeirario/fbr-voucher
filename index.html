@@ -726,7 +726,7 @@ function settleCard() {
 }
 
 /* ═══════════════════════════════════════════
-   Card interaction: 3D tilt + gatefold open
+   Card interaction: free 3D drag + gatefold open
    ═══════════════════════════════════════════ */
 function initCardInteraction() {
   const tilt     = document.getElementById('cardTilt');
@@ -734,107 +734,87 @@ function initCardInteraction() {
   const wrapper  = document.getElementById('cardWrapper');
   const hint     = document.getElementById('interactHint');
 
-  let ry = -6, rx = 3;          /* current rotation (lerped) */
-  let ty = -6, tx = 3;          /* target rotation           */
-  let isOpen        = false;
-  let isDragging    = false;
-  let dragMoved     = false;
+  let ry = -6, rx = 3;   /* current rotation (lerped toward target) */
+  let ty = -6, tx = 3;   /* target rotation — accumulates with drag  */
+  let isOpen     = false;
+  let isDragging = false;
+  let dragMoved  = false;
+  let prevX = 0, prevY = 0;
   let startX = 0, startY = 0;
-  let ptrTime       = 0;
+  let ptrTime = 0;
 
-  /* Smooth lerp animation */
+  /* Smooth lerp — chases target but target never resets on its own */
   (function tick() {
-    ry += (ty - ry) * .09;
-    rx += (tx - rx) * .09;
+    ry += (ty - ry) * .10;
+    rx += (tx - rx) * .10;
     tilt.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
     requestAnimationFrame(tick);
   })();
-
-  function restAngles() {
-    ty = isOpen ? 0 : -6;
-    tx = isOpen ? 0 :  3;
-  }
 
   /* ── Mouse ── */
   wrapper.addEventListener('mousedown', e => {
     isDragging = true; dragMoved = false;
     startX = e.clientX; startY = e.clientY;
+    prevX  = e.clientX; prevY  = e.clientY;
     ptrTime = Date.now();
+    e.preventDefault();
   });
 
   document.addEventListener('mousemove', e => {
-    if (!isDragging) {
-      const r  = wrapper.getBoundingClientRect();
-      const dx = (e.clientX - (r.left + r.width  / 2)) / (r.width  / 2);
-      const dy = (e.clientY - (r.top  + r.height / 2)) / (r.height / 2);
-      /* Tighter parallax when open (card is larger) */
-      const amp = isOpen ? 5 : 10;
-      ty = (isOpen ? 0 : -6) + dx * amp;
-      tx = (isOpen ? 0 :  3) - dy * amp * .7;
-      return;
-    }
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
-    ty = (isOpen ? 0 : -6) + dx * .35;
-    tx = (isOpen ? 0 :  3) - dy * .22;
+    if (!isDragging) return;
+    const dx = e.clientX - prevX;
+    const dy = e.clientY - prevY;
+    prevX = e.clientX; prevY = e.clientY;
+    if (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4) dragMoved = true;
+    ty += dx * 0.55;
+    tx -= dy * 0.38;
   });
 
   document.addEventListener('mouseup', e => {
     if (!isDragging) return;
     isDragging = false;
-    const dragDx = e.clientX - startX;
     if (!dragMoved && Date.now() - ptrTime < 290) toggle();
-    else if (dragMoved && Math.abs(dragDx) > 40) toggle();
-    else restAngles();
+    /* card stays exactly where it is — no snap-back */
   });
 
   /* ── Touch ── */
-  let tx0 = 0, ty0 = 0, tmov = false, lastTouchX = 0;
+  let tx0 = 0, ty0 = 0, tprevX = 0, tprevY = 0, tmov = false;
   wrapper.addEventListener('touchstart', e => {
-    tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
-    lastTouchX = tx0;
+    tx0    = e.touches[0].clientX; ty0    = e.touches[0].clientY;
+    tprevX = tx0;                  tprevY = ty0;
     tmov = false; ptrTime = Date.now();
   }, { passive: true });
 
   wrapper.addEventListener('touchmove', e => {
-    const dx = e.touches[0].clientX - tx0;
-    const dy = e.touches[0].clientY - ty0;
-    lastTouchX = e.touches[0].clientX;
-    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) tmov = true;
-    ty = (isOpen ? 0 : -6) + dx * .45;
-    tx = (isOpen ? 0 :  3) - dy * .3;
+    const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+    const dx = cx - tprevX, dy = cy - tprevY;
+    tprevX = cx; tprevY = cy;
+    if (Math.abs(cx - tx0) > 6 || Math.abs(cy - ty0) > 6) tmov = true;
+    ty += dx * 0.55;
+    tx -= dy * 0.38;
   }, { passive: true });
 
   wrapper.addEventListener('touchend', () => {
-    const swipeDx = lastTouchX - tx0;
     if (!tmov && Date.now() - ptrTime < 290) toggle();
-    else if (tmov && Math.abs(swipeDx) > 40) toggle();
-    else restAngles();
+    /* card stays exactly where it is — no snap-back */
   });
 
-  /* ── Open / close ── */
+  /* ── Open / close gatefold ── */
   function toggle() {
     isOpen = !isOpen;
 
     if (isOpen) {
-      /* Straighten the card, then open */
-      ty = 0; tx = 0;
+      ty = 0; tx = 0;   /* straighten before opening */
       gatefold.classList.add('open');
-
-      /* Fade in the inside spread after wings have passed 90° */
       setTimeout(() => {
         document.getElementById('gatefoldInside').classList.add('visible');
       }, 380);
-
       hint.textContent = 'clica novamente para fechar';
       hint.classList.add('visible');
-
     } else {
-      /* Fade out inside, then close wings */
       document.getElementById('gatefoldInside').classList.remove('visible');
       setTimeout(() => { gatefold.classList.remove('open'); }, 200);
       hint.textContent = 'clica no cartão para o abrir';
-      restAngles();
     }
   }
 }
