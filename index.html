@@ -782,27 +782,33 @@ function initCardInteraction() {
   document.addEventListener('mouseup', e => {
     if (!isDragging) return;
     isDragging = false;
+    const dragDx = e.clientX - startX;
     if (!dragMoved && Date.now() - ptrTime < 290) toggle();
+    else if (dragMoved && Math.abs(dragDx) > 40) toggle();
     else restAngles();
   });
 
   /* ── Touch ── */
-  let tx0 = 0, ty0 = 0, tmov = false;
+  let tx0 = 0, ty0 = 0, tmov = false, lastTouchX = 0;
   wrapper.addEventListener('touchstart', e => {
     tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+    lastTouchX = tx0;
     tmov = false; ptrTime = Date.now();
   }, { passive: true });
 
   wrapper.addEventListener('touchmove', e => {
     const dx = e.touches[0].clientX - tx0;
     const dy = e.touches[0].clientY - ty0;
+    lastTouchX = e.touches[0].clientX;
     if (Math.abs(dx) > 6 || Math.abs(dy) > 6) tmov = true;
     ty = (isOpen ? 0 : -6) + dx * .45;
     tx = (isOpen ? 0 :  3) - dy * .3;
   }, { passive: true });
 
   wrapper.addEventListener('touchend', () => {
+    const swipeDx = lastTouchX - tx0;
     if (!tmov && Date.now() - ptrTime < 290) toggle();
+    else if (tmov && Math.abs(swipeDx) > 40) toggle();
     else restAngles();
   });
 
