@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(start index.html)",
+      "Bash(python -m http.server 8080)",
+      "Bash(npx --yes serve . -p 8080)",
+      "Bash(Start-Process \"http://localhost:8080\")",
+      "Bash(cmd /c start http://localhost:8080)",
+      "Bash(cmd /c \"start http://localhost:8080\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr 8080)"
+    ]
+  }
+}
