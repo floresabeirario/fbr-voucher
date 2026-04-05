@@ -266,13 +266,14 @@ body::before {
 }
 .gatefold.open::after { opacity: 0; }
 
-/* Permanent background fill — always visible, prevents white flash during wing rotation */
+/* Permanent background fill — always visible, prevents white flash during wing rotation.
+   No translateZ so it stays at z=0 and the wings (also z=0, later in DOM) paint on top. */
 .gatefold-inner-bg {
   position: absolute; inset: 0;
   border-radius: 12px;
   background: var(--cream);
-  transform: translateZ(0.3px);
   pointer-events: none;
+  z-index: 0;
 }
 
 /* Inside spread – page 1 of PDF (full inside, revealed when open) */
@@ -500,6 +501,10 @@ body::before {
           ══════════════════════════════════════════════════════ -->
           <div class="gatefold" id="gatefold">
 
+            <!-- Permanent bg fill — first child so wings (later in DOM) paint on top.
+                 Prevents the page background showing through during wing rotation. -->
+            <div class="gatefold-inner-bg"></div>
+
             <!-- Shadow that switches from cover-shadow to inside-shadow -->
             <div class="cover-shadow" id="coverShadow"></div>
             <div class="gatefold-inside-shadow"></div>
@@ -509,9 +514,6 @@ body::before {
               <div class="loading-spinner"></div>
               a carregar
             </div>
-
-            <!-- Permanent bg fill — prevents white flash during wing rotation -->
-            <div class="gatefold-inner-bg"></div>
 
             <!-- Inside spread – page 1 of PDF (full interior design) -->
             <div class="gatefold-inside" id="gatefoldInside"></div>
