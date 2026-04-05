@@ -273,8 +273,8 @@ body::before {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   opacity: 0;
-  /* Sit fractionally behind wing faces (at z=0) to avoid depth-sort fighting */
-  transform: translateZ(-0.5px);
+  /* In front of everything — wings are transparent when open so this shows fully */
+  transform: translateZ(0.5px);
   transition: opacity .35s ease;
   pointer-events: none;
 }
@@ -353,10 +353,11 @@ body::before {
 .wing-left  .wing-front { background-position: 100% 50%; }
 .wing-right .wing-front { background-position:   0% 50%; }
 
-/* BACK face = inside of wing when open (cream / card material) */
+/* BACK face = inside of wing when open.
+   Transparent so the gatefold-inside spread shows through fully. */
 .wing-back {
   transform: rotateY(180deg);
-  background: linear-gradient(160deg, #f7f0e6 0%, #ede5d5 100%);
+  /* no background — intentionally transparent */
 }
 
 /* Open-card shadow (replaces cover-shadow once open) */
