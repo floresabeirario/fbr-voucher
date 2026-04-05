@@ -266,6 +266,15 @@ body::before {
 }
 .gatefold.open::after { opacity: 0; }
 
+/* Permanent background fill — always visible, prevents white flash during wing rotation */
+.gatefold-inner-bg {
+  position: absolute; inset: 0;
+  border-radius: 12px;
+  background: var(--cream);
+  transform: translateZ(0.3px);
+  pointer-events: none;
+}
+
 /* Inside spread – page 1 of PDF (full inside, revealed when open) */
 .gatefold-inside {
   position: absolute; inset: 0;
@@ -275,7 +284,7 @@ body::before {
   opacity: 0;
   /* In front of everything — wings are transparent when open so this shows fully */
   transform: translateZ(0.5px);
-  transition: opacity .3s ease;
+  transition: opacity .4s ease;
   pointer-events: none;
 }
 .gatefold-inside.visible {
@@ -500,6 +509,9 @@ body::before {
               <div class="loading-spinner"></div>
               a carregar
             </div>
+
+            <!-- Permanent bg fill — prevents white flash during wing rotation -->
+            <div class="gatefold-inner-bg"></div>
 
             <!-- Inside spread – page 1 of PDF (full interior design) -->
             <div class="gatefold-inside" id="gatefoldInside"></div>
@@ -807,7 +819,9 @@ function initCardInteraction() {
     if (isOpen) {
       ty = 0; tx = 0;   /* straighten before opening */
       gatefold.classList.add('open');
-      document.getElementById('gatefoldInside').classList.add('visible');
+      setTimeout(() => {
+        document.getElementById('gatefoldInside').classList.add('visible');
+      }, 880);
       hint.textContent = 'clica novamente para fechar';
       hint.classList.add('visible');
     } else {
