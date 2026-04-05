@@ -266,10 +266,12 @@ body::before {
 }
 .gatefold.open::after { opacity: 0; }
 
-/* Permanent background fill — always visible, prevents white flash during wing rotation.
-   No translateZ so it stays at z=0 and the wings (also z=0, later in DOM) paint on top. */
+/* Permanent background fill — covers only the closed-card centre (2×wing-w),
+   same footprint as the wings when closed. Prevents white flash during rotation. */
 .gatefold-inner-bg {
-  position: absolute; inset: 0;
+  position: absolute;
+  left: var(--wing-w); width: calc(var(--wing-w) * 2);
+  top: 0; bottom: 0;
   border-radius: 12px;
   background: var(--cream);
   pointer-events: none;
