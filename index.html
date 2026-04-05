@@ -275,7 +275,7 @@ body::before {
   opacity: 0;
   /* In front of everything — wings are transparent when open so this shows fully */
   transform: translateZ(0.5px);
-  transition: opacity .5s ease;
+  transition: opacity .3s ease;
   pointer-events: none;
 }
 .gatefold-inside.visible {
@@ -354,10 +354,9 @@ body::before {
 .wing-left  .wing-front { background-position: 100% 50%; }
 .wing-right .wing-front { background-position:   0% 50%; }
 
-/* BACK face – matches interior so no flash during rotation */
+/* BACK face – intentionally transparent; back panel handled by .gatefold-back */
 .wing-back {
   transform: rotateY(180deg);
-  background: var(--cream);
 }
 
 /* Single back panel covering the full centre 50% of the closed card.
@@ -808,9 +807,7 @@ function initCardInteraction() {
     if (isOpen) {
       ty = 0; tx = 0;   /* straighten before opening */
       gatefold.classList.add('open');
-      setTimeout(() => {
-        document.getElementById('gatefoldInside').classList.add('visible');
-      }, 200);
+      document.getElementById('gatefoldInside').classList.add('visible');
       hint.textContent = 'clica novamente para fechar';
       hint.classList.add('visible');
     } else {
