@@ -58,7 +58,7 @@ body::before {
 }
 
 .scene {
-  position: relative; z-index: 1;
+  position: relative;
   display: flex; flex-direction: column;
   align-items: center; gap: 2.5rem; width: 100%;
 }
@@ -200,7 +200,9 @@ body::before {
   position: relative; top: auto; left: auto;
   transform: none; z-index: auto;
   pointer-events: auto; margin: 0 auto;
+  transition: none;
 }
+.card-wrapper.risen.settled { opacity: 1; }
 
 /* ── 3-D perspective shell ─────────────── */
 .card-perspective {
@@ -769,6 +771,14 @@ function settleCard() {
     requestAnimationFrame(() => requestAnimationFrame(() => {
       wrapper.style.transition = 'opacity .38s ease';
       wrapper.style.opacity    = '1';
+      /* After fade completes: remove inline opacity/transition so the element
+         is no longer in a compositing layer — Chrome Android flattens
+         preserve-3d on descendants when an ancestor has an active transition. */
+      setTimeout(() => {
+        wrapper.classList.add('settled');
+        wrapper.style.transition = '';
+        wrapper.style.opacity    = '';
+      }, 450);
     }));
 
     setTimeout(() => {
