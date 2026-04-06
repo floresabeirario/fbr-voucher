@@ -870,17 +870,12 @@
     vY    = vY    * DAMP      + (tY    - rotY)   * STIFF;
     vX    = vX    * DAMP      + (tX    - rotX)   * STIFF;
     vEY   = vEY   * DAMP      + (tEY   - entryY) * STIFF;
-    if (tFold === 0) {
-      /* Closing: critically-damped spring (no bounce) */
-      vFold = vFold * 0.58 + (0 - fold) * FOLD_STIFF;
-    } else {
-      vFold = vFold * FOLD_DAMP + (tFold - fold) * FOLD_STIFF;
-    }
+    vFold = vFold * FOLD_DAMP + (tFold - fold)   * FOLD_STIFF;
 
     rotY   += vY;
     rotX   += vX;
     entryY += vEY;
-    fold   = Math.max(0, Math.min(1, fold + vFold));
+    fold   += vFold;
 
     /* Swap cover canvases at the edge-on point (fold = 0.5) */
     const newSide = fold > 0.5 ? 'open' : 'closed';
