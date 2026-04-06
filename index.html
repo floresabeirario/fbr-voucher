@@ -192,10 +192,22 @@
       position: absolute;
       inset: 0;
       overflow: hidden;
-      border-radius: 2px;
+      border-radius: 0;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
+
+    /* ── Rounded corners: only the 4 exterior corners ───────────────
+       OPEN  → outer-left = DOM left of flap-left  front face
+               outer-right = DOM right of flap-right front face
+       CLOSED → flap-left  rotates -180° around right edge:
+                DOM right corners map to screen outer-left
+                flap-right rotates +180° around left edge:
+                DOM left corners map to screen outer-right        */
+    .flap-left  .face-front { border-radius: 8px 0 0 8px; }
+    .flap-right .face-front { border-radius: 0 8px 8px 0; }
+    .flap-left  .face-back  { border-radius: 0 8px 8px 0; }
+    .flap-right .face-back  { border-radius: 8px 0 0 8px; }
 
     .panel-face canvas {
       display: block;
@@ -231,7 +243,7 @@
       z-index: 2;
       transition: opacity 0.55s ease 0.1s;
       pointer-events: none;
-      border-radius: 2px;
+      border-radius: inherit;
     }
     .panel-face.ready::before { opacity: 0; }
 
