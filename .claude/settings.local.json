@@ -16,7 +16,9 @@
       "Bash(/c/Users/maria/AppData/Local/Microsoft/WindowsApps/python3.exe -c \"print\\('hello'\\)\")",
       "Bash(node -e \"console.log\\('node ok'\\)\")",
       "Bash(node -e ':*)",
-      "WebFetch(domain:www.floresabeirario.pt)"
+      "WebFetch(domain:www.floresabeirario.pt)",
+      "Bash(python3 -c ':*)",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\maria\\\\Documents\\\\fbr-voucher\\\\fbr-voucher\\\\index.html' | Measure-Object -Line\")"
     ]
   }
 }

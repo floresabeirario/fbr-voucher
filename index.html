@@ -38,21 +38,28 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
-
+    html { width: 100%; min-height: 100%; }
     body {
+      width: 100%;
+      background: #080c0a;
+      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+
+    /* ── Hero Section ──────────────────────────────────────────── */
+    .hero-section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
       background: #080c0a;
       background-image:
         radial-gradient(ellipse 90% 70% at 50% 30%, rgba(61,107,94,0.14) 0%, transparent 100%),
         radial-gradient(ellipse 50% 40% at 75% 75%, rgba(184,149,74,0.05) 0%, transparent 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      touch-action: none;
-      user-select: none;
-      -webkit-user-select: none;
     }
 
     /* ── Brand ──────────────────────────────────────────────────── */
@@ -145,6 +152,7 @@
       will-change: transform;
       opacity: 0;
       transition: opacity 0.7s ease;
+      touch-action: none;
     }
     .gatefold.loaded { opacity: 1; }
     .gatefold:active  { cursor: grabbing; }
@@ -302,7 +310,10 @@
       align-items: center;
       gap: 10px;
       pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.5s ease;
     }
+    .bottom-ui.hidden { opacity: 0; }
 
     .hint {
       display: flex;
@@ -318,6 +329,30 @@
     }
     .hint.show { opacity: 1; }
     .hint svg  { flex-shrink: 0; opacity: 0.65; }
+
+    .scroll-cue {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    .scroll-cue.show { opacity: 1; }
+    .scroll-cue span {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(250,247,240,0.22);
+    }
+    .scroll-cue svg {
+      opacity: 0.3;
+      animation: bounce-down 1.8s ease-in-out infinite;
+    }
+    @keyframes bounce-down {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(4px); }
+    }
 
     /* ── Spinner ────────────────────────────────────────────────── */
     .spinner {
@@ -340,12 +375,182 @@
     .panel-face.ready .spinner { display: none; }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════════════════════════════════════════════
+       NEXT CHAPTER — "O que fazer agora?"
+    ═══════════════════════════════════════════════════════════════ */
+    .next-chapter {
+      background: #080c0a;
+      padding: clamp(72px,10vw,120px) clamp(24px,6vw,80px) clamp(80px,10vw,128px);
+      position: relative;
+      overflow: hidden;
+    }
+    .next-chapter::before {
+      content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 70%; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(184,149,74,0.25) 30%, rgba(184,149,74,0.25) 70%, transparent);
+    }
+    .nc-inner { max-width: 960px; margin: 0 auto; }
+    .nc-label {
+      font-size: clamp(9px,1vw,11px); letter-spacing: 0.26em; text-transform: uppercase;
+      color: var(--ouro); opacity: 0.7; margin-bottom: 18px;
+    }
+    .nc-title {
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(28px,4.5vw,52px); font-weight: 400;
+      color: var(--creme); line-height: 1.15; margin-bottom: 16px; letter-spacing: 0.02em;
+    }
+    .nc-subtitle {
+      font-size: clamp(13px,1.4vw,16px); color: rgba(250,247,240,0.44);
+      max-width: 480px; line-height: 1.7; margin-bottom: clamp(48px,6vw,72px);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+      gap: 24px;
+    }
+    .step-card {
+      background: rgba(250,247,240,0.028);
+      border: 1px solid rgba(250,247,240,0.06);
+      border-radius: 4px;
+      padding: clamp(28px,3.5vw,40px) clamp(24px,3vw,36px);
+      display: flex; flex-direction: column; gap: 20px;
+      transition: border-color 0.3s ease, background 0.3s ease;
+      position: relative; overflow: hidden;
+    }
+    .step-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(61,107,94,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .step-card:hover { border-color: rgba(184,149,74,0.2); background: rgba(250,247,240,0.04); }
+    .step-card.featured { border-color: rgba(184,149,74,0.22); background: rgba(184,149,74,0.045); }
+    .step-card.featured::before { background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184,149,74,0.08) 0%, transparent 70%); }
+    .step-num {
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(36px,4.5vw,52px); line-height: 1;
+      color: rgba(250,247,240,0.07); letter-spacing: -0.02em; user-select: none;
+    }
+    .step-card.featured .step-num { color: rgba(184,149,74,0.14); }
+    .step-content { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .step-content h3 { font-size: clamp(14px,1.5vw,17px); font-weight: 500; color: rgba(250,247,240,0.88); letter-spacing: 0.01em; }
+    .step-content p  { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.40); line-height: 1.7; flex: 1; }
+    .step-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(250,247,240,0.38); text-decoration: none; margin-top: 8px;
+      transition: color 0.25s ease, gap 0.25s ease;
+    }
+    .step-link:hover { color: rgba(250,247,240,0.72); gap: 10px; }
+    .step-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ouro); text-decoration: none;
+      border: 1px solid rgba(184,149,74,0.35);
+      padding: 12px 20px; border-radius: 2px; margin-top: 8px; width: fit-content;
+      transition: background 0.25s ease, border-color 0.25s ease, gap 0.25s ease;
+    }
+    .step-cta:hover { background: rgba(184,149,74,0.12); border-color: rgba(184,149,74,0.6); gap: 14px; }
+    .code-callout {
+      margin-top: clamp(48px,6vw,64px);
+      padding: clamp(20px,2.5vw,28px) clamp(24px,3vw,36px);
+      border-left: 2px solid rgba(184,149,74,0.4);
+      background: rgba(184,149,74,0.035);
+      border-radius: 0 4px 4px 0;
+    }
+    .code-callout p      { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.42); line-height: 1.7; }
+    .code-callout strong { color: rgba(250,247,240,0.72); font-weight: 500; }
+
+    /* ═══════════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════════ */
+    .site-footer {
+      background: #060908;
+      border-top: 1px solid rgba(250,247,240,0.05);
+      padding: clamp(48px,7vw,80px) clamp(24px,6vw,80px) 0;
+    }
+    .footer-inner {
+      max-width: 960px; margin: 0 auto;
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr;
+      gap: clamp(32px,5vw,64px); padding-bottom: clamp(40px,5vw,60px);
+    }
+    .footer-logo {
+      display: block; font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(14px,1.5vw,18px); letter-spacing: 0.12em;
+      color: rgba(250,247,240,0.75); margin-bottom: 12px;
+    }
+    .footer-tagline { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250,247,240,0.22); line-height: 1.8; }
+    .footer-website-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: rgba(184,149,74,0.65); text-decoration: none; margin-top: 20px;
+      transition: color 0.25s ease, gap 0.25s ease;
+    }
+    .footer-website-link:hover { color: rgba(184,149,74,1); gap: 10px; }
+    .footer-nav h4, .footer-contact h4 {
+      font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;
+      color: rgba(250,247,240,0.22); margin-bottom: 18px;
+    }
+    .footer-nav ul, .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-nav a, .footer-contact a {
+      font-size: clamp(12px,1.1vw,13px); color: rgba(250,247,240,0.40);
+      text-decoration: none; letter-spacing: 0.02em; transition: color 0.22s ease;
+    }
+    .footer-nav a:hover, .footer-contact a:hover { color: rgba(250,247,240,0.75); }
+    .contact-item { display: flex; align-items: center; gap: 10px; }
+    .contact-item svg { flex-shrink: 0; opacity: 0.35; }
+    .footer-social { display: flex; gap: 12px; margin-top: 20px; }
+    .social-link {
+      display: flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border: 1px solid rgba(250,247,240,0.1); border-radius: 50%;
+      color: rgba(250,247,240,0.35); text-decoration: none;
+      transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+    }
+    .social-link:hover { border-color: rgba(184,149,74,0.45); color: rgba(184,149,74,0.9); background: rgba(184,149,74,0.07); }
+    .footer-bottom {
+      max-width: 960px; margin: 0 auto;
+      padding: 20px 0 24px;
+      border-top: 1px solid rgba(250,247,240,0.05);
+      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    }
+    .footer-bottom p, .footer-bottom a {
+      font-size: 10px; letter-spacing: 0.12em; color: rgba(250,247,240,0.18);
+      text-decoration: none; transition: color 0.22s ease;
+    }
+    .footer-bottom a:hover { color: rgba(250,247,240,0.5); }
+    @media (max-width: 700px) {
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .footer-inner { grid-template-columns: 1fr; }
+      .steps-grid   { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
 <p class="brand">Flores à Beira-Rio</p>
 
+<div class="bottom-ui" id="bottom-ui">
+  <div class="hint" id="hint">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
+    </svg>
+    Clique para abrir · arraste para explorar
+  </div>
+  <div class="scroll-cue" id="scroll-cue">
+    <span>Deslize para saber mais</span>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 15l7 7 7-7"/>
+    </svg>
+  </div>
+</div>
+
+<section class="hero-section">
 <div class="scene-wrap">
   <div class="ground-shadow" id="ground-shadow"></div>
   <div class="scene">
@@ -408,16 +613,141 @@
     </div>
   </div>
 </div>
+</section>
 
-<div class="bottom-ui">
-  <div class="hint" id="hint">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-      <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
-    </svg>
-    Clique para abrir · arraste para explorar
+<!-- O que fazer agora? -->
+<section class="next-chapter">
+  <div class="nc-inner">
+    <p class="nc-label">Para os noivos</p>
+    <h2 class="nc-title">O que fazer agora?</h2>
+    <p class="nc-subtitle">O vosso vale presente está activado. Aqui está como transformá-lo numa memória para sempre.</p>
+
+    <div class="steps-grid">
+
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Visite o nosso site</h3>
+          <p>Descubra como funciona a preservação floral e inspire-se com os nossos trabalhos. Cada bouquet tem a sua história.</p>
+          <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="step-link">
+            Visitar o site
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Explore as nossas opções</h3>
+          <p>Conheça os diferentes estilos e técnicas de preservação disponíveis. Encontre a forma perfeita de eternizar o vosso momento.</p>
+          <a href="https://www.floresabeirario.pt/oferecer-preservacao" target="_blank" rel="noopener" class="step-link">
+            Ver opções de preservação
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="step-card featured">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Reserve a vossa sessão</h3>
+          <p>Preencha o formulário de reserva com o código do vosso vale presente. Entraremos em contacto para agendar tudo.</p>
+          <a href="https://www.floresabeirario.pt/reservar-preservacao" target="_blank" rel="noopener" class="step-cta">
+            Reservar agora
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="code-callout">
+      <p>
+        <strong>Lembrete:</strong> ao preencher o formulário, não se esqueça de inserir o código impresso no vosso vale presente. É através dele que confirmamos e activamos a vossa reserva.
+      </p>
+    </div>
   </div>
-</div>
+</section>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-inner">
+
+    <div class="footer-brand">
+      <span class="footer-logo">Flores à Beira-Rio</span>
+      <p class="footer-tagline">Preservação floral artesanal<br>Portugal</p>
+      <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="footer-website-link">
+        floresabeirario.pt
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
+      </a>
+    </div>
+
+    <nav class="footer-nav">
+      <h4>Navegação</h4>
+      <ul>
+        <li><a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener">Página inicial</a></li>
+        <li><a href="https://www.floresabeirario.pt/oferecer-preservacao" target="_blank" rel="noopener">Preservação floral</a></li>
+        <li><a href="https://www.floresabeirario.pt/reservar-preservacao" target="_blank" rel="noopener">Reservar sessão</a></li>
+      </ul>
+      <div class="footer-social">
+        <!-- Actualizar handles das redes sociais se necessário -->
+        <a href="https://www.instagram.com/floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
+          </svg>
+        </a>
+        <a href="https://www.facebook.com/floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+          </svg>
+        </a>
+        <a href="https://www.pinterest.pt/floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="Pinterest">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.03-2.83.18-.78 1.17-4.97 1.17-4.97s-.3-.6-.3-1.48c0-1.39.81-2.43 1.81-2.43.85 0 1.27.64 1.27 1.41 0 .86-.55 2.14-.83 3.33-.24.99.5 1.8 1.48 1.8 1.77 0 3.14-1.87 3.14-4.57 0-2.39-1.72-4.06-4.17-4.06-2.84 0-4.5 2.13-4.5 4.33 0 .86.33 1.78.74 2.28a.3.3 0 01.07.28c-.08.31-.24.99-.28 1.13-.04.18-.15.22-.34.13-1.25-.58-2.03-2.41-2.03-3.87 0-3.15 2.29-6.05 6.61-6.05 3.47 0 6.16 2.47 6.16 5.78 0 3.45-2.17 6.22-5.19 6.22-1.01 0-1.97-.53-2.29-1.15l-.62 2.38c-.23.87-.84 1.96-1.24 2.62.94.29 1.93.45 2.96.45 5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+          </svg>
+        </a>
+      </div>
+    </nav>
+
+    <div class="footer-contact">
+      <h4>Contacto</h4>
+      <ul>
+        <li>
+          <!-- Actualizar com o email real -->
+          <a href="mailto:geral@floresabeirario.pt" class="contact-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
+            </svg>
+            geral@floresabeirario.pt
+          </a>
+        </li>
+        <li>
+          <!-- Actualizar com o número real -->
+          <a href="tel:+351000000000" class="contact-item">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.09 2.18 2 2 0 012.07 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+            </svg>
+            +351 000 000 000
+          </a>
+        </li>
+        <li>
+          <span class="contact-item" style="color:rgba(250,247,240,0.40);font-size:clamp(12px,1.1vw,13px);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            Portugal
+          </span>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Flores à Beira-Rio · Todos os direitos reservados</p>
+    <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener">floresabeirario.pt</a>
+  </div>
+</footer>
 
 <script>
   /* ── PDF.js ─────────────────────────────────────────────────────── */
@@ -429,6 +759,8 @@
   const flapLeft     = document.getElementById('flap-left');
   const flapRight    = document.getElementById('flap-right');
   const hint         = document.getElementById('hint');
+  const scrollCue    = document.getElementById('scroll-cue');
+  const bottomUi     = document.getElementById('bottom-ui');
   const groundShadow = document.getElementById('ground-shadow');
 
   const cvCoverL     = document.getElementById('canvas-cover-left');
@@ -610,6 +942,7 @@
     if (!interacted) {
       interacted = true;
       hint.classList.remove('show');
+      setTimeout(() => scrollCue.classList.add('show'), 1200);
     }
   }
 
@@ -630,6 +963,11 @@
   }, { passive: false });
   window.addEventListener('touchend', () => onUp());
 
+  /* ── Scroll: hide fixed UI when user leaves hero ────────────────── */
+  window.addEventListener('scroll', () => {
+    const heroH = document.querySelector('.hero-section').offsetHeight;
+    bottomUi.classList.toggle('hidden', window.scrollY > heroH * 0.55);
+  }, { passive: true });
 
   /* ── PDF rendering ───────────────────────────────────────────────── */
   /*
@@ -734,6 +1072,7 @@
       if (interacted) return;
 
       hint.classList.add('show');
+      setTimeout(() => { if (!interacted) scrollCue.classList.add('show'); }, 2000);
 
       /* Slight peek then close — teases the click-to-open action */
       setTimeout(() => {
