@@ -871,9 +871,8 @@
     vX    = vX    * DAMP      + (tX    - rotX)   * STIFF;
     vEY   = vEY   * DAMP      + (tEY   - entryY) * STIFF;
     if (tFold === 0) {
-      /* Closing: simple ease-out, no spring/bounce */
-      vFold = 0;
-      fold += (0 - fold) * 0.14;
+      /* Closing: critically-damped spring (no bounce) */
+      vFold = vFold * 0.58 + (0 - fold) * FOLD_STIFF;
     } else {
       vFold = vFold * FOLD_DAMP + (tFold - fold) * FOLD_STIFF;
     }
