@@ -495,6 +495,64 @@
     }
 
     /* ═══════════════════════════════════════════════════════════════
+       VOUCHER SUMMARY — pill with key info
+    ═══════════════════════════════════════════════════════════════ */
+    .voucher-summary {
+      display: none;
+      justify-content: center;
+      padding: 32px clamp(16px,5vw,40px) 48px;
+      background: #FAF7F0;
+    }
+    .voucher-summary.visible { display: flex; }
+    .vs-card {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+      border: 1px solid rgba(184,149,74,0.28);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      max-width: 680px;
+      width: 100%;
+    }
+    .vs-item {
+      flex: 1 1 140px;
+      padding: 18px 22px;
+      border-right: 1px solid rgba(184,149,74,0.18);
+      min-width: 0;
+    }
+    .vs-item:last-child { border-right: none; }
+    .vs-label {
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--ouro);
+      opacity: 0.75;
+      margin-bottom: 5px;
+    }
+    .vs-value {
+      font-size: clamp(13px,1.5vw,15px);
+      color: #14120c;
+      font-weight: 400;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .vs-value.vs-code {
+      font-family: 'Google Sans Mono', 'Roboto Mono', ui-monospace, monospace;
+      letter-spacing: 0.12em;
+      font-size: clamp(12px,1.4vw,14px);
+      color: var(--verde);
+      font-weight: 500;
+    }
+    @media (max-width: 480px) {
+      .vs-card { flex-direction: column; border-radius: 14px; }
+      .vs-item { border-right: none; border-bottom: 1px solid rgba(184,149,74,0.18); }
+      .vs-item:last-child { border-bottom: none; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
        NEXT CHAPTER — "O que fazer agora?"
     ═══════════════════════════════════════════════════════════════ */
     .next-chapter {
@@ -939,6 +997,28 @@
   </div>
 </div>
 </section>
+
+<!-- Voucher Summary -->
+<div class="voucher-summary" id="voucher-summary" aria-label="Resumo do vale presente">
+  <div class="vs-card">
+    <div class="vs-item">
+      <p class="vs-label">De</p>
+      <p class="vs-value" id="vs-de">—</p>
+    </div>
+    <div class="vs-item">
+      <p class="vs-label">Para</p>
+      <p class="vs-value" id="vs-para">—</p>
+    </div>
+    <div class="vs-item">
+      <p class="vs-label">Valor</p>
+      <p class="vs-value" id="vs-valor">—</p>
+    </div>
+    <div class="vs-item">
+      <p class="vs-label">Código</p>
+      <p class="vs-value vs-code" id="vs-codigo">—</p>
+    </div>
+  </div>
+</div>
 
 <!-- O que fazer agora? -->
 <section class="next-chapter">
@@ -1606,6 +1686,17 @@
         if (elPara)   elPara.textContent   = data.destinatario;
         if (elValor)  elValor.textContent  = 'de ' + data.valor;
         if (elCodigo) elCodigo.textContent = data.codigo;
+
+        // Populate summary strip
+        const summary = document.getElementById('voucher-summary');
+        if (summary) {
+          const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+          set('vs-de',     data.remetente);
+          set('vs-para',   data.destinatario);
+          set('vs-valor',  data.valor);
+          set('vs-codigo', data.codigo);
+          summary.classList.add('visible');
+        }
       } catch (err) {
         console.warn('[fbr-voucher] Failed to load voucher data:', err);
       }
