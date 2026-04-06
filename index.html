@@ -250,6 +250,29 @@
       z-index: 3;
     }
 
+    /* ── Handwritten names overlay (sits on cover back face) ── */
+    .handwritten-cover {
+      position: absolute;
+      inset: 0;
+      /* Same face orientation as .panel-center .face-back, but 2px further forward */
+      transform: rotateY(180deg) translateZ(calc(var(--ht) + 4px));
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      pointer-events: none;
+    }
+    .hw-name {
+      position: absolute;
+      font-family: 'Homemade Apple', cursive;
+      color: #1a1a1a;
+      font-size: calc(var(--h) * 0.030);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    /* "de: ___" line: ~17% from left, ~84% from top of center panel */
+    .hw-de   { left: 17%; top: 83.5%; }
+    /* "para: ___" line: ~21% from left, ~89% from top */
+    .hw-para { left: 21%; top: 88.5%; }
+
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
       background:
@@ -581,6 +604,11 @@
         </div>
         <div class="panel-face face-back" id="face-center-back">
           <canvas id="canvas-center-back"></canvas>
+        </div>
+        <!-- Handwritten names on the cover — floats just in front of face-center-back -->
+        <div class="handwritten-cover" aria-hidden="true">
+          <span class="hw-name hw-de">Joana</span>
+          <span class="hw-name hw-para">Guilherme e Alexandra</span>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
@@ -1150,22 +1178,6 @@
 
       /* Store page2 for dynamic cover swaps */
       page2Offscreen = page2;
-
-      /* ── Handwritten names on cover ── */
-      await document.fonts.load('1em "Homemade Apple"');
-      {
-        const ctx2 = page2.getContext('2d');
-        const W    = page2.width;
-        const H    = page2.height;
-        const fs   = Math.round(W * 0.022);          /* ~2.2% of full width */
-        ctx2.save();
-        ctx2.font         = `${fs}px "Homemade Apple"`;
-        ctx2.fillStyle    = '#7ab0c4';               /* matches the blue of "de:" / "para:" */
-        ctx2.textBaseline = 'alphabetic';
-        ctx2.fillText('Joana',                  Math.round(W * 0.190), Math.round(H * 0.840));
-        ctx2.fillText('Guilherme e Alexandra',  Math.round(W * 0.200), Math.round(H * 0.893));
-        ctx2.restore();
-      }
 
       /* ── Front faces: page 1 in 25/50/25 slices ── */
       copySlice(page1, document.getElementById('canvas-inner-left'),   0,    0.25);
