@@ -1337,7 +1337,6 @@
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold  = 0;
     document.body.classList.toggle('voucher-open', isOpen);
-    gatefold.style.touchAction = isOpen ? 'none' : 'pan-y';
     if (!isOpen) zoomScale = SCALE_OPEN;  // reset zoom on close
     applySceneScale(isOpen ? zoomScale : SCALE_CLOSE, true);
     startSpring();
