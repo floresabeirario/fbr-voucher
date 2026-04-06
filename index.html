@@ -198,16 +198,16 @@
     }
 
     /* ── Rounded corners: only the 4 exterior corners ───────────────
-       OPEN  → outer-left = DOM left of flap-left  front face
-               outer-right = DOM right of flap-right front face
-       CLOSED → flap-left  rotates -180° around right edge:
-                DOM right corners map to screen outer-left
-                flap-right rotates +180° around left edge:
-                DOM left corners map to screen outer-right        */
-    .flap-left  .face-front { border-radius: 8px 0 0 8px; }
-    .flap-right .face-front { border-radius: 0 8px 8px 0; }
-    .flap-left  .face-back  { border-radius: 0 8px 8px 0; }
-    .flap-right .face-back  { border-radius: 8px 0 0 8px; }
+       OPEN  → outer-left  = DOM left  corners of flap-left  .face-front
+               outer-right = DOM right corners of flap-right .face-front
+       CLOSED → flap-left  at rotateY(-180°) around right edge:
+                  face-local x=0 → world outer-left  → round DOM LEFT  corners
+                flap-right at rotateY(+180°) around left  edge:
+                  face-local x=W → world outer-right → round DOM RIGHT corners */
+    .flap-left  .face-front { border-radius: 20px 0 0 20px; }
+    .flap-right .face-front { border-radius: 0 20px 20px 0; }
+    .flap-left  .face-back  { border-radius: 20px 0 0 20px; }
+    .flap-right .face-back  { border-radius: 0 20px 20px 0; }
 
     .panel-face canvas {
       display: block;
