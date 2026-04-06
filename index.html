@@ -265,10 +265,10 @@
       line-height: 1;
       white-space: nowrap;
     }
-    /* "de: ___" line: ~17% from left, ~84% from top of center panel */
-    .hw-de   { left: 17%; top: 83.5%; }
-    /* "para: ___" line: ~21% from left, ~89% from top */
-    .hw-para { left: 21%; top: 88.5%; }
+    /* "de: ___" line on the right flap */
+    .hw-de   { left: 34%; top: 83.5%; }
+    /* "para: ___" line on the right flap */
+    .hw-para { left: 34%; top: 88.5%; }
 
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
@@ -602,11 +602,6 @@
         <div class="panel-face face-back" id="face-center-back">
           <canvas id="canvas-center-back"></canvas>
         </div>
-        <!-- Handwritten names on the cover — floats just in front of face-center-back -->
-        <div class="handwritten-cover" aria-hidden="true">
-          <span class="hw-name hw-de">Joana</span>
-          <span class="hw-name hw-para">Guilherme e Alexandra</span>
-        </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
       </div>
@@ -643,6 +638,11 @@
         </div>
         <div class="panel-face face-back" id="face-cover-right">
           <canvas id="canvas-cover-right"></canvas>
+        </div>
+        <!-- Handwritten names on the right flap — floats in front of face-cover-right -->
+        <div class="handwritten-cover" aria-hidden="true">
+          <span class="hw-name hw-de">Joana</span>
+          <span class="hw-name hw-para">Guilherme e Alexandra</span>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
