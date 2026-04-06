@@ -24,12 +24,12 @@
     }
 
     :root {
-      /* Card dimensions: A4 landscape ratio 297/210 = 1.4142 */
-      --w: min(740px, 92vw, calc(72vh * 1.4142));
-      --h: calc(var(--w) / 1.4142);
-      --hw: calc(var(--w) / 2);   /* half width — each panel */
-      --t: 2px;     /* card thickness */
-      --ht: 1px;    /* half thickness */
+      /* Full card: A4 landscape — 297/210 = 1.4142 */
+      --w:  min(740px, 92vw, calc(72vh * 1.4142));
+      --h:  calc(var(--w) / 1.4142);
+      --pw: calc(var(--w) / 3);   /* one panel = one third */
+      --t:  2px;                  /* paper thickness */
+      --ht: 1px;                  /* half thickness */
       --verde:     #3D6B5E;
       --creme:     #FAF7F0;
       --terracota: #C4846B;
@@ -45,7 +45,6 @@
         radial-gradient(ellipse 90% 70% at 50% 30%, rgba(61,107,94,0.14) 0%, transparent 100%),
         radial-gradient(ellipse 50% 40% at 75% 75%, rgba(184,149,74,0.05) 0%, transparent 100%);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
@@ -55,7 +54,7 @@
       -webkit-user-select: none;
     }
 
-    /* ── Brand ─────────────────────────────────────────────────── */
+    /* ── Brand ──────────────────────────────────────────────────── */
     .brand {
       position: fixed;
       top: clamp(16px, 3vh, 30px);
@@ -77,7 +76,6 @@
       justify-content: center;
     }
 
-    /* Ground shadow */
     .ground-shadow {
       position: absolute;
       bottom: -36px;
@@ -96,10 +94,22 @@
       perspective-origin: 50% 42%;
     }
 
-    /* ── Gatefold container ─────────────────────────────────────── */
+    /* ── Gatefold (outer shell — rotates on drag) ───────────────── */
     /*
-      The gatefold is the rotatable outer shell (drag to tilt/explore).
-      Inside it: two panels (left & right) that fold open/closed.
+      3-panel gatefold:
+        ┌──────────┬──────────┬──────────┐
+        │ flap-L   │  center  │  flap-R  │  ← OPEN (flat, fold=1)
+        └──────────┴──────────┴──────────┘
+
+        ├──(fold)──┤          ├──(fold)──┤
+        flap-L hinge = right edge of left panel  (x = W/3)
+        flap-R hinge = left  edge of right panel (x = 2W/3)
+
+      CLOSED (fold=0):
+        left  flap → rotateY(-180°) — folds backward over center
+        right flap → rotateY(+180°) — folds backward over center
+      OPEN (fold=1):
+        both flaps → rotateY(0°) — fully unfolded, flat
     */
     .gatefold {
       width: var(--w);
@@ -115,39 +125,40 @@
     .gatefold:active  { cursor: grabbing; }
 
     /* ── Panels ─────────────────────────────────────────────────── */
-    /*
-      Each panel is half the card width.
-      Left panel  hinges on its RIGHT edge  (transform-origin: right center).
-      Right panel hinges on its LEFT  edge  (transform-origin: left center).
-
-      Opening animation:
-        left  panel: rotateY(0°) → rotateY(-180°)
-        right panel: rotateY(0°) → rotateY(+180°)
-
-      When fully open (±180°) the panels swap sides:
-        left  panel (originally left  half) now occupies right half
-        right panel (originally right half) now occupies left  half
-      The inner face canvases are assigned accordingly (see JS).
-    */
     .panel {
       position: absolute;
       top: 0;
-      width: var(--hw);
+      width: var(--pw);
       height: 100%;
       transform-style: preserve-3d;
     }
 
-    .panel-left {
+    /* Center panel: never rotates, declared first → renders behind flaps */
+    .panel-center {
+      left: var(--pw);
+    }
+
+    /* Left flap: hinge at its right edge */
+    .flap-left {
       left: 0;
       transform-origin: right center;
     }
 
-    .panel-right {
+    /* Right flap: hinge at its left edge */
+    .flap-right {
       right: 0;
       transform-origin: left center;
     }
 
     /* ── Panel faces ────────────────────────────────────────────── */
+    /*
+      face-front  : visible at rotateY(0°)   → INNER CONTENT (open state)
+      face-back   : visible at rotateY(±180°) → OUTER COVER  (closed state)
+
+      Center panel has no back face (it never rotates, always shows content).
+      The center front face sits at z = ht − 0.5px so that flap cover faces
+      (at z = ht) always render in front of it when the flaps are closed over it.
+    */
     .panel-face {
       position: absolute;
       inset: 0;
@@ -163,25 +174,20 @@
       height: 100%;
     }
 
-    /*
-      Outer face: faces viewer when panel is at rotateY(0°) — closed state.
-      translateZ(ht) places it at the front of the panel's z-space.
-    */
-    .panel-outer {
+    /* Front face (inner content) — slightly recessed for center panel */
+    .face-front {
       transform: translateZ(var(--ht));
     }
+    .panel-center .face-front {
+      transform: translateZ(calc(var(--ht) - 0.5px));
+    }
 
-    /*
-      Inner face: faces away from viewer when panel is at rotateY(0°).
-      rotateY(180deg) turns it around; translateZ(ht) along the now-reversed
-      local Z puts it at z = -ht in panel space.
-      Becomes visible when the panel has rotated ±180° (open state).
-    */
-    .panel-inner {
+    /* Back face (outer cover) — back of each flap */
+    .face-back {
       transform: rotateY(180deg) translateZ(var(--ht));
     }
 
-    /* PDF loading placeholder — fades once canvas is ready */
+    /* PDF loading placeholder */
     .panel-face::before {
       content: '';
       position: absolute;
@@ -194,106 +200,71 @@
     }
     .panel-face.ready::before { opacity: 0; }
 
-    /* Gloss layer */
+    /* Gloss */
     .panel-face::after {
       content: '';
       position: absolute;
       inset: 0;
-      pointer-events: none;
-      z-index: 3;
       background: linear-gradient(
         128deg,
         rgba(255,255,255,0.055) 0%,
         transparent 42%,
         rgba(0,0,0,0.03) 100%
       );
+      pointer-events: none;
+      z-index: 3;
     }
 
-    /* Fold-crease shadow on outer faces (only near the center fold) */
-    .panel-left  .panel-outer::after {
+    /* Fold-crease shadow near the spine edges (inner faces only) */
+    .flap-left  .face-front::after {
       background:
-        linear-gradient(to right, transparent 80%, rgba(0,0,0,0.13) 100%),
+        linear-gradient(to right, transparent 82%, rgba(0,0,0,0.11) 100%),
         linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
     }
-    .panel-right .panel-outer::after {
+    .flap-right .face-front::after {
       background:
-        linear-gradient(to left, transparent 80%, rgba(0,0,0,0.13) 100%),
+        linear-gradient(to left,  transparent 82%, rgba(0,0,0,0.11) 100%),
+        linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
+    }
+    .panel-center .face-front::after {
+      background:
+        linear-gradient(to right, rgba(0,0,0,0.07) 0%, transparent 8%, transparent 92%, rgba(0,0,0,0.07) 100%),
         linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
     }
 
-    /* ── Panel edges (paper thickness) ─────────────────────────── */
-    /*
-      Edge geometry: same principle as original card edges.
-      transform: translateZ(ht) rotateX/Y(±90°)
-      Places each edge strip at the paper boundary.
-
-      Outer edges: left edge of left panel, right edge of right panel.
-      Top/bottom edges: on both panels (half-width each).
-      Spine edges: right edge of left panel & left edge of right panel
-                   (the fold crease — slightly darker).
-    */
+    /* ── Paper edges ────────────────────────────────────────────── */
     .panel-edge {
       position: absolute;
       background: linear-gradient(
         to right,
-        #b8ab99 0%,
-        #d8cfc0 22%,
-        #ede0ce 50%,
-        #d8cfc0 78%,
-        #b8ab99 100%
+        #b8ab99 0%, #d8cfc0 22%, #ede0ce 50%, #d8cfc0 78%, #b8ab99 100%
       );
     }
-
-    /* Top edge — both panels */
     .p-edge-top {
       top: 0; left: 0;
       width: 100%; height: var(--t);
       transform-origin: top center;
       transform: translateZ(var(--ht)) rotateX(-90deg);
     }
-    /* Bottom edge — both panels */
     .p-edge-bottom {
       bottom: 0; left: 0;
       width: 100%; height: var(--t);
       transform-origin: bottom center;
       transform: translateZ(var(--ht)) rotateX(90deg);
     }
-    /* Outer left edge — left panel only */
+    /* Outer left edge of the whole gatefold */
     .p-edge-outer-left {
       top: 0; left: 0;
       width: var(--t); height: 100%;
       transform-origin: left center;
       transform: translateZ(var(--ht)) rotateY(90deg);
     }
-    /* Outer right edge — right panel only */
+    /* Outer right edge of the whole gatefold */
     .p-edge-outer-right {
       top: 0; right: 0;
       width: var(--t); height: 100%;
       transform-origin: right center;
       transform: translateZ(var(--ht)) rotateY(-90deg);
-    }
-    /* Spine / fold-crease edges — slightly darker to suggest the crease */
-    .p-edge-spine {
-      background: linear-gradient(
-        to right,
-        rgba(80,60,40,0.18) 0%,
-        rgba(40,28,18,0.35) 50%,
-        rgba(80,60,40,0.18) 100%
-      );
-    }
-    /* Spine right (right side of left panel) */
-    .p-edge-spine-r {
-      top: 0; right: 0;
-      width: var(--t); height: 100%;
-      transform-origin: right center;
-      transform: translateZ(var(--ht)) rotateY(-90deg);
-    }
-    /* Spine left (left side of right panel) */
-    .p-edge-spine-l {
-      top: 0; left: 0;
-      width: var(--t); height: 100%;
-      transform-origin: left center;
-      transform: translateZ(var(--ht)) rotateY(90deg);
     }
 
     /* ── Bottom UI ──────────────────────────────────────────────── */
@@ -348,7 +319,7 @@
     }
     .btn-flip:active { transform: scale(0.96); }
 
-    /* ── Loading spinner ────────────────────────────────────────── */
+    /* ── Spinner ────────────────────────────────────────────────── */
     .spinner {
       position: absolute;
       inset: 0;
@@ -380,52 +351,56 @@
   <div class="scene">
     <div class="gatefold" id="gatefold">
 
-      <!-- ── LEFT PANEL ─────────────────────────────────────────── -->
-      <div class="panel panel-left" id="panel-left">
-
-        <!-- Outer face: left half of page 1 (cover), visible when closed -->
-        <div class="panel-face panel-outer" id="face-outer-left">
-          <canvas id="canvas-outer-left"></canvas>
+      <!--
+        CENTER PANEL — fixed, never rotates.
+        Declared first so it renders behind the flaps (CSS 3D painter order).
+      -->
+      <div class="panel panel-center" id="panel-center">
+        <div class="panel-face face-front" id="face-inner-center">
+          <canvas id="canvas-inner-center"></canvas>
           <div class="spinner"></div>
         </div>
+        <div class="panel-edge p-edge-top"></div>
+        <div class="panel-edge p-edge-bottom"></div>
+      </div>
 
-        <!--
-          Inner face: RIGHT half of page 2 (content), visible when open.
-          Counter-intuitive but correct: when left panel opens (rotateY -180°)
-          it migrates to the RIGHT side of the screen, so its canvas must carry
-          the right half of the inner page.
-        -->
-        <div class="panel-face panel-inner" id="face-inner-left">
+      <!--
+        LEFT FLAP — hinge: right edge (x = W/3).
+        CLOSED: rotateY(-180°) — folds backward over center.
+        OPEN:   rotateY(0°).
+        face-front canvas = left third of page 1 (inner content).
+        face-back  canvas = center third of page 2 (cover, shown when closed).
+      -->
+      <div class="panel flap-left" id="flap-left">
+        <div class="panel-face face-front" id="face-inner-left">
           <canvas id="canvas-inner-left"></canvas>
         </div>
-
+        <div class="panel-face face-back" id="face-cover-left">
+          <canvas id="canvas-cover-left"></canvas>
+        </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
         <div class="panel-edge p-edge-outer-left"></div>
-        <div class="panel-edge p-edge-spine p-edge-spine-r"></div>
       </div>
 
-      <!-- ── RIGHT PANEL ────────────────────────────────────────── -->
-      <div class="panel panel-right" id="panel-right">
-
-        <!-- Outer face: right half of page 1 (cover) -->
-        <div class="panel-face panel-outer" id="face-outer-right">
-          <canvas id="canvas-outer-right"></canvas>
-        </div>
-
-        <!--
-          Inner face: LEFT half of page 2 (content).
-          Right panel opens (rotateY +180°) → migrates to LEFT side of screen
-          → canvas carries the left half of the inner page.
-        -->
-        <div class="panel-face panel-inner" id="face-inner-right">
+      <!--
+        RIGHT FLAP — hinge: left edge (x = 2W/3).
+        CLOSED: rotateY(+180°) — folds backward over center.
+        OPEN:   rotateY(0°).
+        face-front canvas = right third of page 1 (inner content).
+        face-back  canvas = center third of page 2 (cover, shown when closed).
+        Declared last → renders in front of left flap when both are closed.
+      -->
+      <div class="panel flap-right" id="flap-right">
+        <div class="panel-face face-front" id="face-inner-right">
           <canvas id="canvas-inner-right"></canvas>
         </div>
-
+        <div class="panel-face face-back" id="face-cover-right">
+          <canvas id="canvas-cover-right"></canvas>
+        </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
         <div class="panel-edge p-edge-outer-right"></div>
-        <div class="panel-edge p-edge-spine p-edge-spine-l"></div>
       </div>
 
     </div>
@@ -452,20 +427,20 @@
 
   /* ── DOM refs ───────────────────────────────────────────────────── */
   const gatefold    = document.getElementById('gatefold');
-  const panelLeft   = document.getElementById('panel-left');
-  const panelRight  = document.getElementById('panel-right');
+  const flapLeft    = document.getElementById('flap-left');
+  const flapRight   = document.getElementById('flap-right');
   const hint        = document.getElementById('hint');
   const btnFlip     = document.getElementById('btn-flip');
   const groundShadow = document.getElementById('ground-shadow');
 
   /* ── Spring constants ───────────────────────────────────────────── */
   const STIFF      = 0.11,  DAMP      = 0.70;
-  const FOLD_STIFF = 0.085, FOLD_DAMP = 0.74;
+  const FOLD_STIFF = 0.08,  FOLD_DAMP = 0.74;
 
   /* ── Spring state ───────────────────────────────────────────────── */
   /*
-    rotY / rotX / entryY : overall gatefold rotation & entrance offset
-    fold                 : 0 = closed (outer faces), 1 = open (inner faces)
+    rotY / rotX / entryY : overall gatefold tilt & entrance offset
+    fold  : 0 = CLOSED (flaps at ±180°), 1 = OPEN (flaps at 0°)
   */
   let rotY = -22, rotX = 0, entryY = 26;
   let tY = 0,    tX = 0,   tEY = 0;
@@ -479,21 +454,25 @@
   let dragging   = false;
   let lx = 0,   ly = 0;
   let interacted = false;
-  let foldOpen   = false;
+  let isOpen     = false;   /* tracks whether gatefold is open */
 
-  /* ── Apply all transforms ───────────────────────────────────────── */
+  /* ── Apply transforms ───────────────────────────────────────────── */
   function apply() {
-    /* Overall gatefold rotation (drag-to-explore) */
+    /* Overall gatefold tilt (drag) */
     gatefold.style.transform =
       `translateY(${entryY.toFixed(2)}px) ` +
       `rotateY(${rotY.toFixed(3)}deg) ` +
       `rotateX(${rotX.toFixed(3)}deg)`;
 
-    /* Panel fold: 0° = closed, ±180° = open */
-    panelLeft.style.transform  = `rotateY(${(-180 * fold).toFixed(3)}deg)`;
-    panelRight.style.transform = `rotateY(${( 180 * fold).toFixed(3)}deg)`;
+    /*
+      Flap fold:
+        fold = 0 (CLOSED): left = -180°, right = +180°
+        fold = 1 (OPEN):   left =    0°, right =    0°
+    */
+    flapLeft.style.transform  = `rotateY(${(-180 * (1 - fold)).toFixed(3)}deg)`;
+    flapRight.style.transform = `rotateY(${( 180 * (1 - fold)).toFixed(3)}deg)`;
 
-    /* Ground shadow intensity */
+    /* Ground shadow — brightest when face-on to viewer */
     const edgeOn = Math.abs(((rotY % 180) + 180) % 180 - 90);
     groundShadow.style.opacity = 0.4 + (edgeOn / 90) * 0.55;
   }
@@ -532,12 +511,7 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
-  /* ── Snap overall rotation back to front-facing ─────────────────── */
-  /*
-    The gatefold always snaps to 0° (front-facing) — we don't flip the
-    entire card; open/close is handled by the fold animation.
-    Light tilting (rotX, small rotY) is still allowed while dragging.
-  */
+  /* ── Snap overall rotation to front-facing ──────────────────────── */
   function snapGatefold() {
     tY = Math.round(rotY / 360) * 360;
     while (tY - rotY >  180) tY -= 360;
@@ -574,10 +548,7 @@
   }
 
   /* Mouse */
-  gatefold.addEventListener('mousedown', e => {
-    e.preventDefault();
-    onDown(e.clientX, e.clientY);
-  });
+  gatefold.addEventListener('mousedown', e => { e.preventDefault(); onDown(e.clientX, e.clientY); });
   window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
   window.addEventListener('mouseup',   ()  => onUp());
 
@@ -586,56 +557,62 @@
     e.preventDefault();
     onDown(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
-
   window.addEventListener('touchmove', e => {
     if (!dragging) return;
     e.preventDefault();
     onMove(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
-
   window.addEventListener('touchend', () => onUp());
 
   /* ── Open / Close button ────────────────────────────────────────── */
   btnFlip.addEventListener('click', () => {
-    foldOpen = !foldOpen;
-    tFold = foldOpen ? 1 : 0;
+    isOpen = !isOpen;
+    tFold  = isOpen ? 1 : 0;
 
-    /* Snap gatefold to front before folding for a clean animation */
+    /* Snap to front for a clean fold animation */
     tY = Math.round(rotY / 360) * 360;
     while (tY - rotY >  180) tY -= 360;
     while (tY - rotY < -180) tY += 360;
     tX = 0;
 
-    btnFlip.textContent = foldOpen ? 'Fechar' : 'Abrir';
-    btnFlip.setAttribute('aria-label', foldOpen ? 'Fechar o cartão' : 'Abrir o cartão');
+    btnFlip.textContent = isOpen ? 'Fechar' : 'Abrir';
+    btnFlip.setAttribute('aria-label', isOpen ? 'Fechar o cartão' : 'Abrir o cartão');
 
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold = 0;
     startSpring();
   });
 
-  /* ── PDF Rendering ───────────────────────────────────────────────── */
+  /* ── PDF rendering ───────────────────────────────────────────────── */
   /*
-    Render at 2× or 3× pixel density for retina crispness.
-    Strategy:
-      1. Render full PDF page to an offscreen canvas at full card width.
-      2. Use drawImage to copy the appropriate half to each panel canvas.
+    High-DPI rendering:
+      1. Render each PDF page to a full-width offscreen canvas.
+      2. Copy one third (left / center / right) to each panel's canvas.
 
-    Inner face canvas assignment (counter-intuitive but geometrically correct):
-      canvas-inner-left  ← right half of page 2
-        (left panel opens → moves to right side of screen)
-      canvas-inner-right ← left half of page 2
-        (right panel opens → moves to left side of screen)
+    Canvas assignment:
+      face-front (inner content, visible when OPEN = fold 1):
+        canvas-inner-left   ← left   third of page 1
+        canvas-inner-center ← center third of page 1
+        canvas-inner-right  ← right  third of page 1
+
+      face-back (cover, visible when CLOSED = fold 0):
+        When a flap is closed (rotateY ±180°) its back face occupies
+        world x ∈ [W/3, 2W/3] — exactly the center panel area.
+        Both flap back faces map to the same world position; the right
+        flap renders on top (last in DOM). Both get the center third
+        of page 2 so it doesn't matter which is in front.
+        canvas-cover-left  ← center third of page 2
+        canvas-cover-right ← center third of page 2
   */
   const PIXEL_SCALE = Math.min(window.devicePixelRatio >= 2 ? 3 : 2, 3);
 
   async function renderFullPage(pdf, pageNum) {
-    const page  = await pdf.getPage(pageNum);
-    const vp0   = page.getViewport({ scale: 1 });
+    const page = await pdf.getPage(pageNum);
+    const vp0  = page.getViewport({ scale: 1 });
 
-    /* Scale so the full page fills the card's CSS width at PIXEL_SCALE */
-    const refCanvas = document.getElementById('canvas-outer-left');
-    const cssFullW  = (refCanvas.offsetWidth  || 370) * 2;
+    /* Render at full card width × PIXEL_SCALE */
+    const refCanvas = document.getElementById('canvas-inner-center');
+    const cssFullW  = (refCanvas.offsetWidth || 247) * 3;
     const scale     = (cssFullW * PIXEL_SCALE) / vp0.width;
     const vp        = page.getViewport({ scale });
 
@@ -643,62 +620,58 @@
     offscreen.width  = Math.round(vp.width);
     offscreen.height = Math.round(vp.height);
 
-    await page.render({
-      canvasContext: offscreen.getContext('2d'),
-      viewport: vp,
-    }).promise;
-
+    await page.render({ canvasContext: offscreen.getContext('2d'), viewport: vp }).promise;
     return offscreen;
   }
 
-  function copyHalf(src, dst, side) {
+  function copyThird(src, dst, part) {
     const sw = src.width;
     const sh = src.height;
-    const hw = Math.floor(sw / 2);
+    const tw = Math.floor(sw / 3);
+    const sx = part === 'left' ? 0 : part === 'center' ? tw : 2 * tw;
 
-    dst.width  = hw;
+    dst.width  = tw;
     dst.height = sh;
-
-    const ctx = dst.getContext('2d');
-    if (side === 'left') {
-      ctx.drawImage(src, 0,  0, hw, sh, 0, 0, hw, sh);
-    } else {
-      ctx.drawImage(src, hw, 0, hw, sh, 0, 0, hw, sh);
-    }
+    dst.getContext('2d').drawImage(src, sx, 0, tw, sh, 0, 0, tw, sh);
   }
 
   async function loadPDF() {
     try {
       const pdf = await pdfjsLib.getDocument('./voucher_azul.pdf').promise;
 
-      const [pageOuter, pageInner] = await Promise.all([
-        renderFullPage(pdf, 1),  /* outer / cover page */
-        renderFullPage(pdf, 2),  /* inner content page */
+      const [page1, page2] = await Promise.all([
+        renderFullPage(pdf, 1),   /* inner content (open state) */
+        renderFullPage(pdf, 2),   /* exterior cover (closed state) */
       ]);
 
-      /* Outer faces — straightforward halves */
-      copyHalf(pageOuter, document.getElementById('canvas-outer-left'),  'left');
-      copyHalf(pageOuter, document.getElementById('canvas-outer-right'), 'right');
+      /* Inner content: page 1 in thirds */
+      copyThird(page1, document.getElementById('canvas-inner-left'),   'left');
+      copyThird(page1, document.getElementById('canvas-inner-center'), 'center');
+      copyThird(page1, document.getElementById('canvas-inner-right'),  'right');
 
-      /* Inner faces — SWAPPED (see comment above) */
-      copyHalf(pageInner, document.getElementById('canvas-inner-left'),  'right');
-      copyHalf(pageInner, document.getElementById('canvas-inner-right'), 'left');
+      /* Cover: center third of page 2 (both flap back faces map here) */
+      copyThird(page2, document.getElementById('canvas-cover-left'),  'center');
+      copyThird(page2, document.getElementById('canvas-cover-right'), 'center');
 
-      /* Mark all faces ready (fades out the cream placeholder) */
-      ['face-outer-left', 'face-outer-right', 'face-inner-left', 'face-inner-right']
+      ['face-inner-center','face-inner-left','face-inner-right',
+       'face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
 
     } catch (err) {
       console.warn('[fbr-voucher] PDF load failed:', err);
-      ['face-outer-left', 'face-outer-right', 'face-inner-left', 'face-inner-right']
+      ['face-inner-center','face-inner-left','face-inner-right',
+       'face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
     }
   }
 
   /* ── Init ────────────────────────────────────────────────────────── */
   function init() {
-    apply();
+    /* Start closed (fold = 0) */
+    fold  = 0;
+    tFold = 0;
 
+    apply();
     loadPDF();
 
     requestAnimationFrame(() => gatefold.classList.add('loaded'));
@@ -706,23 +679,23 @@
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
 
+    /* After entrance: show UI + subtle fold tease */
     setTimeout(() => {
       if (interacted) return;
 
       hint.classList.add('show');
       btnFlip.classList.add('show');
 
-      /* Wobble tease */
+      /* Slight fold peek then close back */
       setTimeout(() => {
         if (interacted) return;
-        tY = 16;
+        tFold = 0.12;
         startSpring();
-
         setTimeout(() => {
           if (interacted) return;
-          tY = 0;
+          tFold = 0;
           startSpring();
-        }, 750);
+        }, 700);
       }, 300);
 
     }, 1400);
