@@ -265,10 +265,13 @@
       line-height: 1;
       white-space: nowrap;
     }
-    /* "de: ___" line on the right flap (inside face-cover-right, 25% panel) */
-    .hw-de   { left: 22%; top: 83%; }
-    /* "para: ___" line on the right flap */
-    .hw-para { left: 26%; top: 88%; }
+    /* "de: ___" line (inside face-cover-left, appears on right when exterior shown) */
+    .hw-de   { left: 15%; top: 87%; }
+    /* "para: ___" line */
+    .hw-para { left: 19%; top: 92%; }
+
+    /* Allow text to overflow the face boundary so it isn't clipped */
+    #face-cover-left { overflow: visible; }
 
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
