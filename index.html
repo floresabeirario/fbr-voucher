@@ -387,14 +387,7 @@
       /* Clip folded flaps that sit off-screen */
       body { overflow-x: hidden; }
 
-      /* When open: scale the whole scene down so the full card fits the viewport.
-         --w ≈ 180vw × scale(0.5) → visible card ≈ 90vw. */
-      .scene {
-        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      body.voucher-open .scene {
-        transform: scale(0.5);
-      }
+      /* Scale managed entirely by JS (see applySceneScale) */
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -946,6 +939,8 @@
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold  = 0;
     document.body.classList.toggle('voucher-open', isOpen);
+    if (!isOpen) zoomScale = SCALE_OPEN;  // reset zoom on close
+    applySceneScale(isOpen ? zoomScale : SCALE_CLOSE, true);
     startSpring();
   }
 
@@ -968,31 +963,72 @@
     }
   }
 
-  /* Mouse — ignored for ~500 ms after a touch to avoid synthetic duplicates */
+  /* ── Mobile scene scale (open = 0.5 fits screen; pinch up to 1.0 to read) ── */
+  const scene       = document.querySelector('.scene');
+  const isMobile    = () => window.matchMedia('(max-width:600px)').matches;
+  const SCALE_OPEN  = 0.5;
+  const SCALE_CLOSE = 1.0;
+  let   zoomScale   = SCALE_OPEN;  // current zoom when open
+
+  function applySceneScale(scale, animate) {
+    if (!isMobile()) { scene.style.transform = ''; scene.style.transition = ''; return; }
+    scene.style.transition = animate ? 'transform 0.55s cubic-bezier(0.4,0,0.2,1)' : 'none';
+    scene.style.transform  = isOpen ? `scale(${scale})` : '';
+  }
+
+  /* ── Mouse — ignored for ~500 ms after touch to avoid synthetic duplicates ── */
   let lastTouchTime = 0;
   gatefold.addEventListener('mousedown', e => {
     if (Date.now() - lastTouchTime < 500) return;
     e.preventDefault();
     onDown(e.clientX, e.clientY);
   });
-  window.addEventListener('mousemove',   e => onMove(e.clientX, e.clientY));
-  window.addEventListener('mouseup',     ()  => onUp());
+  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup',   ()  => onUp());
 
-  /* Touch
-     Direction-aware: decide on first ~5px of movement whether the gesture
-     is vertical (→ browser scroll) or horizontal (→ card drag/rotate).
-     When the card is already open, horizontal also goes to the browser
-     vertical swipe → page scroll; horizontal swipe → rotate card.
+  /* ── Touch ──────────────────────────────────────────────────────────
+     • 1-finger vertical   → page scroll
+     • 1-finger horizontal → rotate card
+     • 2-finger pinch (only when open on mobile) → zoom 0.5 ↔ 1.0
   */
-  let touchDir = null; // null = undecided | 'v' = scroll | 'h' = drag
+  let touchDir       = null;  // null | 'v' | 'h'
+  let pinching       = false;
+  let pinchStartDist = 0;
+  let pinchStartZoom = SCALE_OPEN;
+
+  function pinchDist(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
 
   gatefold.addEventListener('touchstart', e => {
     lastTouchTime = Date.now();
+
+    if (e.touches.length === 2 && isOpen && isMobile()) {
+      // Start pinch — cancel any single-finger drag
+      pinching       = true;
+      dragging       = false;
+      pinchStartDist = pinchDist(e.touches);
+      pinchStartZoom = zoomScale;
+      return;
+    }
+
     touchDir = null;
     onDown(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
 
   window.addEventListener('touchmove', e => {
+    // Pinch zoom (2 fingers, open card, mobile)
+    if (pinching && e.touches.length === 2) {
+      e.preventDefault();
+      const ratio = pinchDist(e.touches) / pinchStartDist;
+      zoomScale = Math.min(SCALE_CLOSE, Math.max(SCALE_OPEN, pinchStartZoom * ratio));
+      scene.style.transition = 'none';
+      scene.style.transform  = `scale(${zoomScale})`;
+      return;
+    }
+
     if (!dragging) return;
 
     const tx = e.touches[0].clientX;
@@ -1002,22 +1038,32 @@
     if (touchDir === null) {
       const adx = Math.abs(tx - downX);
       const ady = Math.abs(ty - downY);
-      if (adx > 4 || ady > 4) {
-        touchDir = ady > adx ? 'v' : 'h';
-      }
+      if (adx > 4 || ady > 4) touchDir = ady > adx ? 'v' : 'h';
     }
 
-    // Vertical swipe → let browser scroll the page
-    if (touchDir === 'v') { dragging = false; return; }
+    if (touchDir === 'v') { dragging = false; return; }  // vertical → scroll page
 
-    // Horizontal swipe → rotate card (works open and closed)
     if (touchDir === 'h') {
       e.preventDefault();
       onMove(tx, ty);
     }
   }, { passive: false });
 
-  window.addEventListener('touchend', () => onUp());
+  window.addEventListener('touchend', e => {
+    if (pinching) {
+      // Keep pinching until both fingers are gone; snap to nearest stop
+      if (e.touches.length < 2) {
+        pinching = false;
+        const snapped = zoomScale > (SCALE_OPEN + SCALE_CLOSE) / 2 ? SCALE_CLOSE : SCALE_OPEN;
+        zoomScale = snapped;
+        applySceneScale(snapped, true);
+      }
+      return;  // don't trigger onUp during/after a pinch
+    }
+    onUp();
+  });
+
+  window.addEventListener('touchcancel', () => { pinching = false; dragging = false; });
 
   /* ── Scroll: hide fixed UI when user leaves hero ────────────────── */
   window.addEventListener('scroll', () => {
