@@ -614,6 +614,151 @@
       .footer-inner { grid-template-columns: 1fr; }
       .steps-grid   { grid-template-columns: 1fr; }
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       SEARCH PAGE — shown at root "/" when no code in URL
+    ═══════════════════════════════════════════════════════════════ */
+    .search-page {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(48px, 8vw, 96px) clamp(24px, 6vw, 64px);
+      background: #FAF7F0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% 35%, rgba(61,107,94,0.07) 0%, transparent 100%),
+        radial-gradient(ellipse 40% 35% at 78% 72%, rgba(184,149,74,0.05) 0%, transparent 100%);
+      position: relative;
+    }
+    .search-page.visible { display: flex; }
+
+    .search-inner {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .search-eyebrow {
+      font-size: clamp(9px, 1vw, 11px);
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--ouro);
+      opacity: 0.75;
+      margin-bottom: clamp(20px, 3vw, 28px);
+    }
+
+    .search-title {
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(30px, 5.5vw, 58px);
+      font-weight: 400;
+      color: #14120c;
+      line-height: 1.12;
+      letter-spacing: 0.02em;
+      margin-bottom: 14px;
+    }
+
+    .search-subtitle {
+      font-size: clamp(13px, 1.35vw, 15px);
+      color: rgba(20,18,12,0.55);
+      line-height: 1.75;
+      max-width: 360px;
+      margin: 0 auto clamp(40px, 6vw, 56px);
+    }
+
+    .search-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 16px 20px;
+      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      font-size: clamp(14px, 1.5vw, 16px);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #14120c;
+      background: #fff;
+      border: 1.5px solid rgba(61,107,94,0.22);
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.22s ease, box-shadow 0.22s ease;
+      text-align: center;
+    }
+    .search-input::placeholder {
+      letter-spacing: 0.1em;
+      text-transform: none;
+      color: rgba(20,18,12,0.3);
+      font-size: clamp(13px, 1.3vw, 14px);
+    }
+    .search-input:focus {
+      border-color: var(--verde);
+      box-shadow: 0 0 0 3px rgba(61,107,94,0.08);
+    }
+
+    .search-btn {
+      width: 100%;
+      padding: 16px 24px;
+      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      font-size: clamp(12px, 1.2vw, 13px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #FAF7F0;
+      background: var(--verde);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.22s ease, transform 0.12s ease;
+    }
+    .search-btn:hover  { background: #2f5448; }
+    .search-btn:active { transform: scale(0.985); }
+
+    .search-error {
+      font-size: 12px;
+      color: var(--terracota);
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      min-height: 18px;
+    }
+    .search-error.show { opacity: 1; }
+
+    .search-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(184,149,74,0.35);
+      margin: clamp(40px, 5vw, 52px) auto clamp(28px, 3.5vw, 36px);
+    }
+
+    .search-note {
+      font-size: clamp(11px, 1.1vw, 12px);
+      color: rgba(20,18,12,0.38);
+      line-height: 1.65;
+      letter-spacing: 0.02em;
+    }
+    .search-note strong {
+      color: rgba(20,18,12,0.6);
+      font-weight: 500;
+    }
+
+    /* decorative botanical line */
+    .search-deco {
+      position: absolute;
+      bottom: clamp(28px, 4vw, 48px);
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0.12;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -636,6 +781,51 @@
     </svg>
   </div>
 </div>
+
+<!-- Search / Landing page (shown when no code in URL) -->
+<section class="search-page" id="search-page" aria-label="Pesquisar vale presente">
+  <div class="search-inner">
+    <p class="search-eyebrow">Vale Presente Digital</p>
+    <h1 class="search-title">O seu vale<br>presente</h1>
+    <p class="search-subtitle">Recebeu um vale físico? Introduza o código impresso no cartão para aceder ao seu vale digital.</p>
+
+    <form class="search-form" id="search-form" novalidate>
+      <div class="search-input-wrap">
+        <input
+          class="search-input"
+          id="search-input"
+          type="text"
+          inputmode="text"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          placeholder="Código do vale  ·  ex: A1B2C3"
+          maxlength="20"
+          aria-label="Código do vale presente"
+        >
+      </div>
+      <p class="search-error" id="search-error" role="alert" aria-live="polite"></p>
+      <button type="submit" class="search-btn">Ver vale presente</button>
+    </form>
+
+    <div class="search-divider"></div>
+    <p class="search-note">
+      O código encontra-se impresso no canto superior direito do cartão físico.<br>
+      <strong>Dúvidas?</strong> Contacte-nos em <a href="mailto:geral@floresabeirario.pt" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">geral@floresabeirario.pt</a>
+    </p>
+  </div>
+
+  <!-- subtle botanical decoration -->
+  <svg class="search-deco" width="120" height="48" viewBox="0 0 120 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M10 24 Q30 8 60 24 Q90 40 110 24" stroke="#3D6B5E" stroke-width="1" fill="none"/>
+    <path d="M30 24 Q35 14 40 18" stroke="#3D6B5E" stroke-width="0.8" fill="none"/>
+    <path d="M50 24 Q55 12 62 16" stroke="#3D6B5E" stroke-width="0.8" fill="none"/>
+    <path d="M72 24 Q77 34 84 30" stroke="#3D6B5E" stroke-width="0.8" fill="none"/>
+    <circle cx="40" cy="17" r="2.2" fill="#3D6B5E" opacity="0.6"/>
+    <circle cx="62" cy="15" r="2.2" fill="#3D6B5E" opacity="0.6"/>
+    <circle cx="84" cy="29" r="2.2" fill="#3D6B5E" opacity="0.6"/>
+  </svg>
+</section>
 
 <section class="hero-section">
 <div class="scene-wrap">
@@ -1307,27 +1497,68 @@
 </script>
 
 <script>
-  (async function () {
-    const code = window.location.pathname.replace(/^\//, '').split('/')[0];
-    if (!code) return;
+  (function () {
+    const code = window.location.pathname.replace(/^\//, '').split('/')[0].trim();
 
-    try {
-      const res = await fetch('/api/voucher?code=' + encodeURIComponent(code));
-      if (!res.ok) return;
-      const data = await res.json();
+    /* ── No code → show search page, hide voucher UI ─────────────── */
+    if (!code) {
+      document.getElementById('search-page').classList.add('visible');
+      document.querySelector('.hero-section').style.display = 'none';
+      document.querySelector('.next-chapter').style.display = 'none';
+      document.querySelector('.site-footer').style.display  = 'none';
+      document.querySelector('.bottom-ui').style.display    = 'none';
+      document.querySelector('.brand').style.position       = 'absolute';
 
-      const elDe     = document.querySelector('.hw-de');
-      const elPara   = document.querySelector('.hw-para');
-      const elValor  = document.querySelector('.hw-valor');
-      const elCodigo = document.querySelector('.hw-codigo');
+      const form  = document.getElementById('search-form');
+      const input = document.getElementById('search-input');
+      const err   = document.getElementById('search-error');
 
-      if (elDe)     elDe.textContent     = data.remetente;
-      if (elPara)   elPara.textContent   = data.destinatario;
-      if (elValor)  elValor.textContent  = 'de ' + data.valor;
-      if (elCodigo) elCodigo.textContent = data.codigo;
-    } catch (err) {
-      console.warn('[fbr-voucher] Failed to load voucher data:', err);
+      function showError(msg) {
+        err.textContent = msg;
+        err.classList.add('show');
+        input.style.borderColor = 'rgba(196,132,107,0.6)';
+      }
+      function clearError() {
+        err.classList.remove('show');
+        input.style.borderColor = '';
+      }
+
+      input.addEventListener('input', clearError);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const val = input.value.trim().toUpperCase().replace(/\s+/g, '');
+        if (!val) {
+          showError('Por favor introduza o código do vale.');
+          input.focus();
+          return;
+        }
+        window.location.href = '/' + encodeURIComponent(val);
+      });
+
+      return;
     }
+
+    /* ── Code present → load voucher data from API ────────────────── */
+    (async function () {
+      try {
+        const res = await fetch('/api/voucher?code=' + encodeURIComponent(code));
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const elDe     = document.querySelector('.hw-de');
+        const elPara   = document.querySelector('.hw-para');
+        const elValor  = document.querySelector('.hw-valor');
+        const elCodigo = document.querySelector('.hw-codigo');
+
+        if (elDe)     elDe.textContent     = data.remetente;
+        if (elPara)   elPara.textContent   = data.destinatario;
+        if (elValor)  elValor.textContent  = 'de ' + data.valor;
+        if (elCodigo) elCodigo.textContent = data.codigo;
+      } catch (err) {
+        console.warn('[fbr-voucher] Failed to load voucher data:', err);
+      }
+    })();
   })();
 </script>
 </body>
