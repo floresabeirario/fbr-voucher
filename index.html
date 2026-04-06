@@ -305,6 +305,23 @@
       font-size: calc(var(--h) * 0.048);
     }
 
+    /* ── Code overlay on right flap inner face (page 1, top-right) ── */
+    .handwritten-inner-right {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+      transform: translateZ(calc(var(--ht) + 0.1px));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .voucher-open .handwritten-inner-right { opacity: 1; }
+    .hw-codigo {
+      left: 40%;
+      top: 9%;
+      font-size: calc(var(--h) * 0.030);
+    }
+
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
       background:
@@ -682,6 +699,10 @@
         </div>
         <div class="panel-face face-back" id="face-cover-right">
           <canvas id="canvas-cover-right"></canvas>
+        </div>
+        <!-- Code placeholder overlay on inner face (page 1 top-right) -->
+        <div class="handwritten-inner-right" aria-hidden="true">
+          <span class="hw-name hw-codigo">A1B2C3</span>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
