@@ -278,7 +278,6 @@ body::before {
     rgba(0,0,0,.18) 12%,
     rgba(0,0,0,.18) 88%,
     transparent);
-  transform: translateZ(3px);
   pointer-events: none;
   transition: opacity .4s ease;
   z-index: 10;
@@ -304,8 +303,7 @@ body::before {
   background-size: 100% 100%;
   background-repeat: no-repeat;
   opacity: 0;
-  /* In front of everything — wings are transparent when open so this shows fully */
-  transform: translateZ(0.5px);
+  z-index: 3;
   transition: opacity .4s ease;
   pointer-events: none;
 }
@@ -345,7 +343,6 @@ body::before {
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   transition: transform 1.15s cubic-bezier(.4,0,.2,1);
-  z-index: 2;
 }
 
 /* LEFT wing: starts at x = wing-w (25% of open-w), hinged on LEFT edge
@@ -484,6 +481,10 @@ body::before {
     --card-h: 200px;
     --env-w:  220px;
     --env-h:  248px;
+  }
+  .cta-btn {
+    border-color: var(--terracotta);
+    color: var(--terracotta);
   }
 }
 @media (max-width: 360px) {
