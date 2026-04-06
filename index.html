@@ -120,9 +120,10 @@
 
           Flap back-face canvases are DYNAMIC (swapped at fold = 0.5):
             ┌─ CLOSED side (fold < 0.5) ────────────────────────────────┐
-            │ canvas-cover-left  = page2 [25% – 50%]                    │
-            │ canvas-cover-right = page2 [50% – 75%]                    │
-            │ → together they show page2 central 50% over the center    │
+            │ canvas-cover-left  = page2 [0%  – 25%]  (left lateral)    │
+            │ canvas-cover-right = page2 [75% – 100%] (right lateral)   │
+            │ → together they show page2 outer 50% on the front         │
+            │   center-back (always page2 [25–75%]) shows on back  ✓    │
             └───────────────────────────────────────────────────────────┘
             ┌─ OPEN side (fold > 0.5) ──────────────────────────────────┐
             │ canvas-cover-left  = page2 [75% – 100%]                   │
@@ -516,12 +517,13 @@
     if (coverSide === 'closed') {
       /*
         Closed view: flaps fold over center.
-        Left flap back face  → appears at screen x∈[25%,50%] → page2 [25–50%]
-        Right flap back face → appears at screen x∈[50%,75%] → page2 [50–75%]
-        Together: page2 central 50% is visible.
+        Left flap back face  → appears at screen x∈[25%,50%] → page2 [0–25%]   (left lateral)
+        Right flap back face → appears at screen x∈[50%,75%] → page2 [75–100%] (right lateral)
+        Together: page2 outer 50% (laterals) is visible on the front.
+        Center back face shows page2 [25–75%] on the back. ✓
       */
-      copySlice(page2Offscreen, cvCoverL, 0.25, 0.50);
-      copySlice(page2Offscreen, cvCoverR, 0.50, 0.75);
+      copySlice(page2Offscreen, cvCoverL, 0.00, 0.25);
+      copySlice(page2Offscreen, cvCoverR, 0.75, 1.00);
     } else {
       /*
         Open + flipped view (gatefold rotated 180° to see exterior):
