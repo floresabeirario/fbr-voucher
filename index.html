@@ -154,7 +154,7 @@
       will-change: transform;
       opacity: 0;
       transition: opacity 0.7s ease;
-      touch-action: none;
+      touch-action: pan-y;
     }
     .gatefold.loaded { opacity: 1; }
     .gatefold:active  { cursor: grabbing; }
@@ -1332,6 +1332,7 @@
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold  = 0;
     document.body.classList.toggle('voucher-open', isOpen);
+    gatefold.style.touchAction = isOpen ? 'none' : 'pan-y';
     if (!isOpen) zoomScale = SCALE_OPEN;  // reset zoom on close
     applySceneScale(isOpen ? zoomScale : SCALE_CLOSE, true);
     startSpring();
