@@ -823,7 +823,7 @@
 
   /* ── Spring constants ───────────────────────────────────────────── */
   const STIFF      = 0.11,  DAMP      = 0.70;
-  const FOLD_STIFF = 0.08,  FOLD_DAMP = 0.90;
+  const FOLD_STIFF = 0.08,  FOLD_DAMP = 0.74;
 
   /* ── Spring state ───────────────────────────────────────────────── */
   let rotY = -22, rotX = 0, entryY = 26;
@@ -870,7 +870,13 @@
     vY    = vY    * DAMP      + (tY    - rotY)   * STIFF;
     vX    = vX    * DAMP      + (tX    - rotX)   * STIFF;
     vEY   = vEY   * DAMP      + (tEY   - entryY) * STIFF;
-    vFold = vFold * FOLD_DAMP + (tFold - fold)   * FOLD_STIFF;
+    if (tFold === 0) {
+      /* Closing: simple ease-out, no spring/bounce */
+      vFold = 0;
+      fold += (0 - fold) * 0.14;
+    } else {
+      vFold = vFold * FOLD_DAMP + (tFold - fold) * FOLD_STIFF;
+    }
 
     rotY   += vY;
     rotX   += vX;
