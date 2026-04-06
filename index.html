@@ -250,12 +250,16 @@
       z-index: 3;
     }
 
-    /* ── Handwritten names overlay (lives inside face-center-back) ── */
+    /* ── Handwritten names overlay (sibling of face-cover-left in flap-left) ── */
     .handwritten-cover {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 4;               /* above canvas (0), placeholder (2) and gloss (3) */
+      overflow: visible;
+      /* Match face-back transform so it occupies the same 3D plane, slightly in front */
+      transform: rotateY(180deg) translateZ(calc(var(--ht) + 1px));
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
     .hw-name {
       position: absolute;
@@ -265,13 +269,10 @@
       line-height: 1;
       white-space: nowrap;
     }
-    /* "de: ___" line (inside face-cover-left, appears on right when exterior shown) */
-    .hw-de   { left: 15%; top: 87%; }
-    /* "para: ___" line */
-    .hw-para { left: 19%; top: 92%; }
-
-    /* Allow text to overflow the face boundary so it isn't clipped */
-    #face-cover-left { overflow: visible; }
+    /* "de: ___" line — right of the "de:" label */
+    .hw-de   { left: 23%; top: 89%; }
+    /* "para: ___" line — right of the "para:" label */
+    .hw-para { left: 27%; top: 93.5%; }
 
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
@@ -622,11 +623,11 @@
         </div>
         <div class="panel-face face-back" id="face-cover-left">
           <canvas id="canvas-cover-left"></canvas>
-          <!-- Handwritten names inside face-cover-left which appears on the right when exterior is shown -->
-          <div class="handwritten-cover" aria-hidden="true">
-            <span class="hw-name hw-de">Joana</span>
-            <span class="hw-name hw-para">Guilherme e Alexandra</span>
-          </div>
+        </div>
+        <!-- Handwritten names as sibling of face (not inside) so overflow isn't clipped -->
+        <div class="handwritten-cover" aria-hidden="true">
+          <span class="hw-name hw-de">Joana</span>
+          <span class="hw-name hw-para">Guilherme e Alexandra</span>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
