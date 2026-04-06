@@ -204,10 +204,10 @@
                   face-local x=0 → world outer-left  → round DOM LEFT  corners
                 flap-right at rotateY(+180°) around left  edge:
                   face-local x=W → world outer-right → round DOM RIGHT corners */
-    .flap-left  .face-front { border-radius: 20px 0 0 20px; }
-    .flap-right .face-front { border-radius: 0 20px 20px 0; }
-    .flap-left  .face-back  { border-radius: 20px 0 0 20px; }
-    .flap-right .face-back  { border-radius: 0 20px 20px 0; }
+    .flap-left  .face-front { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
+    .flap-right .face-front { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
+    .flap-left  .face-back  { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
+    .flap-right .face-back  { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
 
     .panel-face canvas {
       display: block;
