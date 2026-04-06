@@ -205,6 +205,13 @@
     /* Back face: visible at rotateY(±180°) — exterior/cover */
     .face-back { transform: rotateY(180deg) translateZ(var(--ht)); }
 
+    /* Center back face gets extra Z so it wins the Z-order battle against
+       flap front-faces when the closed gatefold is flipped to show the back.
+       (Flap fronts land at world-z = +ht when closed; center back must be > that.) */
+    .panel-center .face-back {
+      transform: rotateY(180deg) translateZ(calc(var(--ht) + 2px));
+    }
+
     /* PDF loading placeholder */
     .panel-face::before {
       content: '';
@@ -517,13 +524,14 @@
     if (coverSide === 'closed') {
       /*
         Closed view: flaps fold over center.
-        Left flap back face  → appears at screen x∈[25%,50%] → page2 [0–25%]   (left lateral)
-        Right flap back face → appears at screen x∈[50%,75%] → page2 [75–100%] (right lateral)
-        Together: page2 outer 50% (laterals) is visible on the front.
-        Center back face shows page2 [25–75%] on the back. ✓
+        Left flap back face  → appears at screen x∈[25%,50%] → page2 [75–100%] (right lateral)
+        Right flap back face → appears at screen x∈[50%,75%] → page2 [0–25%]   (left lateral)
+        The flap fold mirrors left↔right, so laterals must be swapped relative
+        to their page2 position to read correctly on screen.
+        Center back face shows page2 [25–75%] on the back (fixed by extra Z). ✓
       */
-      copySlice(page2Offscreen, cvCoverL, 0.00, 0.25);
-      copySlice(page2Offscreen, cvCoverR, 0.75, 1.00);
+      copySlice(page2Offscreen, cvCoverL, 0.75, 1.00);
+      copySlice(page2Offscreen, cvCoverR, 0.00, 0.25);
     } else {
       /*
         Open + flipped view (gatefold rotated 180° to see exterior):
