@@ -970,8 +970,13 @@
     }
   }
 
-  /* Mouse */
-  gatefold.addEventListener('mousedown', e => { e.preventDefault(); onDown(e.clientX, e.clientY); });
+  /* Mouse — ignored for ~500 ms after a touch to avoid synthetic duplicates */
+  let lastTouchTime = 0;
+  gatefold.addEventListener('mousedown', e => {
+    if (Date.now() - lastTouchTime < 500) return;
+    e.preventDefault();
+    onDown(e.clientX, e.clientY);
+  });
   window.addEventListener('mousemove',   e => onMove(e.clientX, e.clientY));
   window.addEventListener('mouseup',     ()  => onUp());
 
@@ -984,6 +989,7 @@
   let touchDir = null; // null = undecided | 'v' = scroll | 'h' = drag
 
   gatefold.addEventListener('touchstart', e => {
+    lastTouchTime = Date.now();
     touchDir = null;
     onDown(e.touches[0].clientX, e.touches[0].clientY);
     // No e.preventDefault() here — let browser track the gesture too
