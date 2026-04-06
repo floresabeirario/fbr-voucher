@@ -261,14 +261,14 @@
       position: absolute;
       font-family: 'Homemade Apple', cursive;
       color: #1a1a1a;
-      font-size: calc(var(--h) * 0.030);
+      font-size: calc(var(--h) * 0.022);
       line-height: 1;
       white-space: nowrap;
     }
-    /* "de: ___" line on the right flap */
-    .hw-de   { left: 34%; top: 83.5%; }
+    /* "de: ___" line on the right flap (inside face-cover-right, 25% panel) */
+    .hw-de   { left: 22%; top: 83%; }
     /* "para: ___" line on the right flap */
-    .hw-para { left: 34%; top: 88.5%; }
+    .hw-para { left: 26%; top: 88%; }
 
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
@@ -638,11 +638,11 @@
         </div>
         <div class="panel-face face-back" id="face-cover-right">
           <canvas id="canvas-cover-right"></canvas>
-        </div>
-        <!-- Handwritten names on the right flap — floats in front of face-cover-right -->
-        <div class="handwritten-cover" aria-hidden="true">
-          <span class="hw-name hw-de">Joana</span>
-          <span class="hw-name hw-para">Guilherme e Alexandra</span>
+          <!-- Handwritten names inside the back face so they share its backface-visibility and correct orientation -->
+          <div class="handwritten-cover" aria-hidden="true">
+            <span class="hw-name hw-de">Joana</span>
+            <span class="hw-name hw-para">Guilherme e Alexandra</span>
+          </div>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
