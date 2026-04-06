@@ -1,907 +1,581 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vale Presente · Flores à Beira-Rio</title>
-<meta name="description" content="O teu vale presente Flores à Beira-Rio — preservação botânica artesanal.">
-<meta name="robots" content="noindex, nofollow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Vale Presente · Flores à Beira-Rio</title>
 
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-:root {
-  --green:      #3D6B5E;
-  --green-dark: #0F1E1A;
-  --green-mid:  #2a4f45;
-  --cream:      #FAF7F0;
-  --terracotta: #C4846B;
-  --gold:       #B8954A;
-  --gold-light: #d4b06e;
+  <style>
+    @font-face {
+      font-family: 'TAN Memories';
+      src: url('./fonts/TAN-MEMORIES.otf') format('opentype');
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'TAN Memories';
+      src: url('./fonts/TAN-MEMORIES-Italic.otf') format('opentype');
+      font-style: italic;
+    }
 
-  /*
-    Gatefold geometry:
-      wing-w  = width of each side wing panel  (= 25% of full open card)
-      open-w  = full open card width           (= 4 × wing-w)
-      card-h  = card height
+    :root {
+      /* Card dimensions: A4 landscape ratio 297/210 = 1.4142 */
+      --w: min(740px, 92vw, calc(72vh * 1.4142));
+      --h: calc(var(--w) / 1.4142);
+      --t: 6px;   /* card thickness (simulates 300g paper) */
+      --ht: 3px;  /* half thickness */
+      --verde:     #3D6B5E;
+      --creme:     #FAF7F0;
+      --terracota: #C4846B;
+      --ouro:      #B8954A;
+    }
 
-    Closed cover = 2 × wing-w (the two wings touching at centre)
-    Envelope     = closed cover + margins
-  */
-  --wing-w: 95px;
-  --open-w: 380px;
-  --card-h: 268px;
-  --env-w:  275px;
-  --env-h:  330px;
-}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
 
-html, body { width: 100%; height: 100%; }
+    body {
+      background: #080c0a;
+      background-image:
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(61,107,94,0.14) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 40% at 75% 75%, rgba(184,149,74,0.05) 0%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-body {
-  font-family: 'Jost', sans-serif;
-  background: var(--cream);
-  min-height: 100vh;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 2rem 1rem;
-}
-body::before {
-  content: ''; position: fixed; inset: 0;
-  background-image:
-    radial-gradient(ellipse 120% 80% at 20% 0%,  rgba(61,107,94,.07) 0%, transparent 60%),
-    radial-gradient(ellipse 80%  60% at 80% 100%, rgba(184,149,74,.06) 0%, transparent 50%);
-  pointer-events: none; z-index: 0;
-}
+    /* ── Brand ─────────────────────────────────────────────────── */
+    .brand {
+      position: fixed;
+      top: clamp(16px, 3vh, 30px);
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(11px, 1.15vw, 15px);
+      letter-spacing: 0.18em;
+      color: rgba(250,247,240,0.38);
+      white-space: nowrap;
+      pointer-events: none;
+    }
 
-.scene {
-  position: relative;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 2.5rem; width: 100%;
-}
+    /* ── Scene ──────────────────────────────────────────────────── */
+    .scene-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* ── Brand ─────────────────────────────── */
-.brand {
-  text-align: center;
-  opacity: 0; animation: fadeUp .8s .2s ease forwards;
-}
-.brand-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem; font-weight: 400;
-  letter-spacing: .25em; color: var(--green); text-transform: uppercase;
-}
-.brand-tagline {
-  font-size: .72rem; letter-spacing: .15em;
-  color: var(--terracotta); text-transform: uppercase;
-  margin-top: .25rem; font-weight: 300;
-}
+    /* Ground shadow — separate from preserve-3d to avoid flattening */
+    .ground-shadow {
+      position: absolute;
+      bottom: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 88%;
+      height: 48px;
+      background: radial-gradient(ellipse, rgba(0,0,0,0.72) 0%, transparent 68%);
+      filter: blur(14px);
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
 
-/* ── Envelope scene ─────────────────────── */
-.envelope-scene {
-  position: relative;
-  width: var(--env-w); height: var(--env-h);
-  opacity: 0; animation: fadeUp .8s .5s ease forwards;
-  overflow: visible;
-  transition: height .9s cubic-bezier(.4,0,.2,1), opacity .7s ease;
-}
+    .scene {
+      perspective: 1300px;
+      perspective-origin: 50% 42%;
+    }
 
-.envelope-shadow {
-  position: absolute; bottom: -18px; left: 50%;
-  transform: translateX(-50%);
-  width: calc(var(--env-w) * .85); height: 24px;
-  background: radial-gradient(ellipse, rgba(15,30,26,.2) 0%, transparent 70%);
-  border-radius: 50%; transition: all .6s ease;
-}
-.envelope-shadow.open { opacity: .6; }
+    /* ── Card ───────────────────────────────────────────────────── */
+    .card {
+      width: var(--w);
+      height: var(--h);
+      position: relative;
+      transform-style: preserve-3d;
+      cursor: grab;
+      will-change: transform;
+      /* JS handles all transforms. Opacity via class. */
+      opacity: 0;
+      transition: opacity 0.7s ease;
+    }
+    .card.loaded { opacity: 1; }
+    .card:active  { cursor: grabbing; }
 
-.envelope {
-  position: absolute; inset: 0; cursor: pointer; perspective: 1200px;
-  z-index: 3;
-  transition: opacity .9s ease;
-}
-.envelope.fading {
-  opacity: 0; pointer-events: none;
-}
-.env-body {
-  position: absolute; inset: 0;
-  background: linear-gradient(160deg, #f5ede0 0%, #ede2ce 100%);
-  border-radius: 4px 4px 8px 8px;
-  box-shadow:
-    0 8px 32px rgba(15,30,26,.12),
-    0 2px 8px  rgba(15,30,26,.08),
-    inset 0 1px 0 rgba(255,255,255,.5);
-  overflow: hidden;
-}
-.env-body::before {
-  content: ''; position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient( 45deg, rgba(61,107,94,.04) 0, rgba(61,107,94,.04) 1px, transparent 1px, transparent 12px),
-    repeating-linear-gradient(-45deg, rgba(61,107,94,.04) 0, rgba(61,107,94,.04) 1px, transparent 1px, transparent 12px);
-}
-.env-bottom {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 60%; overflow: hidden;
-}
-.env-bottom::before {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 200%;
-  background: linear-gradient(180deg, #d8c9ae 0%, #cdbfa8 100%);
-  clip-path: polygon(0 100%, 50% 0%, 100% 100%);
-}
-.env-sides { position: absolute; inset: 0; overflow: hidden; }
-.env-sides::before, .env-sides::after {
-  content: ''; position: absolute; top: 0; bottom: 0; width: 55%;
-}
-.env-sides::before {
-  left: 0; clip-path: polygon(0 0, 0 100%, 100% 50%);
-  background: linear-gradient(90deg, #d8c9ae, #e8d8c0);
-}
-.env-sides::after {
-  right: 0; clip-path: polygon(100% 0, 0 50%, 100% 100%);
-  background: linear-gradient(-90deg, #d8c9ae, #e8d8c0);
-}
-.env-flap {
-  position: absolute; top: 0; left: 0; right: 0; height: 55%;
-  transform-origin: top center; transform-style: preserve-3d;
-  transition: transform .95s cubic-bezier(.34,1.2,.64,1); z-index: 10;
-}
-.env-flap-face {
-  position: absolute; inset: 0; overflow: hidden; border-radius: 4px 4px 0 0;
-}
-.env-flap-face::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(160deg, #f5ede0 0%, #e8d5bb 100%);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-}
-.env-flap-face::after {
-  content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(61,107,94,.2), transparent);
-}
-.env-seal {
-  position: absolute; bottom: 30px; left: 50%;
-  transform: translateX(-50%); width: 44px; height: 44px; z-index: 5;
-  transition: transform .4s ease, opacity .4s ease;
-}
-.env-seal svg { width: 100%; height: 100%; }
+    /* ── Faces ──────────────────────────────────────────────────── */
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 2px;
+      overflow: hidden;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
 
-.envelope.open .env-flap { transform: rotateX(-180deg); }
-.envelope.open .env-seal { opacity: 0; transform: translateX(-50%) scale(.8); }
+    .card-face canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
-.click-hint {
-  position: absolute; bottom: -48px; left: 50%;
-  transform: translateX(-50%); white-space: nowrap;
-  font-size: .72rem; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--green); opacity: .6;
-  display: flex; align-items: center; gap: 8px;
-  transition: opacity .4s; font-weight: 300;
-}
-.click-hint::before, .click-hint::after {
-  content: ''; display: block; width: 20px; height: 1px;
-  background: var(--green); opacity: .4;
-}
+    /* PDF loading placeholder — fades once canvas is ready */
+    .card-face::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: #ede3d4;
+      z-index: 2;
+      transition: opacity 0.55s ease 0.1s;
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    .card-face.ready::before { opacity: 0; }
 
-/* ── Card wrapper ──────────────────────── */
-.card-wrapper {
-  position: absolute;
-  top: 12px;          /* card top just inside the envelope opening */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;         /* below envelope (z-index:3) — body covers card while inside */
-  opacity: 0;
-  pointer-events: none;
-  transition: top 1.2s cubic-bezier(.22,1,.36,1), opacity .55s ease .15s;
-}
-.card-wrapper.rising {
-  top: calc(-1 * var(--card-h) - 24px); /* card fully above envelope */
-  opacity: 1;
-}
-.card-wrapper.risen {
-  position: relative; top: auto; left: auto;
-  transform: none; z-index: auto;
-  pointer-events: auto; margin: 0 auto;
-  transition: none;
-}
-.card-wrapper.risen.settled { opacity: 1; }
+    /* Subtle gloss layer — makes it feel printed */
+    .card-face::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        128deg,
+        rgba(255,255,255,0.055) 0%,
+        transparent 42%,
+        rgba(0,0,0,0.03) 100%
+      );
+      pointer-events: none;
+      z-index: 3;
+    }
 
-/* ── 3-D perspective shell ─────────────── */
-.card-perspective {
-  perspective: 1400px;
-  -webkit-perspective: 1400px;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-}
+    /*
+      Face transforms.
+      Front face at z = +ht (facing viewer).
+      Back  face at z = -ht (facing away), rotated 180° on Y.
 
-.card-tilt {
-  position: relative;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform: rotateY(-6deg) rotateX(3deg);
-  cursor: grab; user-select: none; -webkit-user-select: none;
-}
-.card-tilt:active { cursor: grabbing; }
+      For rotateY(180deg) translateZ(ht):
+        After rotateY(180deg), local-z points in -world-z direction,
+        so translateZ(ht) = −ht in world-z → back face sits at z = −ht. ✓
+    */
+    .card-front { transform: translateZ(var(--ht)); }
+    .card-back  { transform: rotateY(180deg) translateZ(var(--ht)); }
 
-/* ══════════════════════════════════════════
-   GATEFOLD STRUCTURE
+    /* ── Card edges (paper thickness) ──────────────────────────── */
+    /*
+      Edge geometry derivation (CSS transforms apply left-to-right):
+      transform: translateZ(ht) rotateX/Y(±90deg)
 
-   Physical layout (standard gatefold):
-   ┌─────────┬──────────────────────┬─────────┐
-   │ wing-l  │     center (open)    │ wing-r  │
-   │ 25%     │         50%          │  25%    │
-   └─────────┴──────────────────────┴─────────┘
-   │◄────────────── open-w ─────────────────►│
+      For each edge, transform-origin is at the card's boundary line.
+      translateZ(ht) moves that line to the front face (z=+ht).
+      The rotation then sweeps the strip from z=+ht to z=−ht.
 
-   Closed: wings fold IN over center, their
-   OUTER faces meeting at centre → the COVER.
+      Verified for each edge below.
+    */
+    .card-edge {
+      position: absolute;
+      background: linear-gradient(
+        to right,
+        #b8ab99 0%,
+        #d8cfc0 22%,
+        #ede0ce 50%,
+        #d8cfc0 78%,
+        #b8ab99 100%
+      );
+    }
 
-   PDF page 2 layout (provided by user):
-   ┌────────┬──────────────┬────────┐
-   │panel 1 │   panel 3    │panel 2 │
-   │left 25%│  center 50%  │right25%│
-   └────────┴──────────────┴────────┘
-   → panel 1 + panel 2 = the COVER (closed face)
-   → page 1 of PDF = full inside spread (open face)
-   ══════════════════════════════════════════ */
+    /* Top: origin at top center. rotateX(-90°) sweeps strip forward (z+→z−). */
+    .edge-top {
+      top: 0; left: 0;
+      width: 100%; height: var(--t);
+      transform-origin: top center;
+      transform: translateZ(var(--ht)) rotateX(-90deg);
+    }
+    /* Bottom: origin at bottom center. rotateX(+90°). */
+    .edge-bottom {
+      bottom: 0; left: 0;
+      width: 100%; height: var(--t);
+      transform-origin: bottom center;
+      transform: translateZ(var(--ht)) rotateX(90deg);
+    }
+    /* Left: origin at left center. rotateY(+90°). */
+    .edge-left {
+      top: 0; left: 0;
+      width: var(--t); height: 100%;
+      transform-origin: left center;
+      transform: translateZ(var(--ht)) rotateY(90deg);
+    }
+    /* Right: origin at right center. rotateY(-90°). */
+    .edge-right {
+      top: 0; right: 0;
+      width: var(--t); height: 100%;
+      transform-origin: right center;
+      transform: translateZ(var(--ht)) rotateY(-90deg);
+    }
 
-.gatefold {
-  position: relative;
-  /* Full open width = 4 × wing-w  */
-  width:  var(--open-w);
-  height: var(--card-h);
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-}
+    /* ── Bottom UI ──────────────────────────────────────────────── */
+    .bottom-ui {
+      position: fixed;
+      bottom: clamp(18px, 3.5vh, 32px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
 
-/* Shadow sits behind the wings, only over the closed-card area */
-.cover-shadow {
-  position: absolute;
-  left: var(--wing-w); top: 0; bottom: 0;
-  width: calc(var(--wing-w) * 2);
-  border-radius: 12px;
-  box-shadow:
-    0 24px 80px rgba(15,30,26,.38),
-    0  6px 20px rgba(15,30,26,.20);
-  pointer-events: none;
-  transition: opacity .6s ease;
-  z-index: 0;
-}
-.gatefold.open .cover-shadow { opacity: 0; }
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 10px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(250,247,240,0.32);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+    .hint.show { opacity: 1; }
+    .hint svg  { flex-shrink: 0; opacity: 0.65; }
 
-/* Spine line between the two closed wings */
-.gatefold::after {
-  content: '';
-  position: absolute;
-  left: calc(var(--wing-w) * 2);
-  top: 4px; bottom: 4px; width: 1px;
-  background: linear-gradient(180deg,
-    transparent,
-    rgba(0,0,0,.18) 12%,
-    rgba(0,0,0,.18) 88%,
-    transparent);
-  pointer-events: none;
-  transition: opacity .15s ease;
-  z-index: 10;
-}
-.gatefold.open::after { opacity: 0; }
+    .btn-flip {
+      pointer-events: all;
+      background: rgba(61,107,94,0.10);
+      border: 1px solid rgba(61,107,94,0.22);
+      color: rgba(250,247,240,0.5);
+      font-family: inherit;
+      font-size: 10px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      padding: 7px 20px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      transition: opacity 0.55s ease, background 0.2s, color 0.2s, transform 0.1s;
+    }
+    .btn-flip.show { opacity: 1; }
+    .btn-flip:hover {
+      background: rgba(61,107,94,0.20);
+      color: rgba(250,247,240,0.85);
+    }
+    .btn-flip:active { transform: scale(0.96); }
 
-/* Permanent background fill — covers only the closed-card centre (2×wing-w),
-   same footprint as the wings when closed. Prevents white flash during rotation. */
-.gatefold-inner-bg {
-  position: absolute;
-  left: var(--wing-w); width: calc(var(--wing-w) * 2);
-  top: 0; bottom: 0;
-  border-radius: 12px;
-  background: var(--cream);
-  pointer-events: none;
-  z-index: 0;
-}
+    /* ── Loading spinner (shown while PDF loads, inside face) ───── */
+    .spinner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .spinner::after {
+      content: '';
+      width: 28px; height: 28px;
+      border: 2px solid rgba(61,107,94,0.18);
+      border-top-color: rgba(61,107,94,0.5);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .card-face.ready .spinner { display: none; }
 
-/* Inside spread – page 1 of PDF (full inside, revealed when open) */
-.gatefold-inside {
-  position: absolute; inset: 0;
-  border-radius: 12px;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  opacity: 0;
-  z-index: 3;
-  transition: opacity .4s ease;
-  pointer-events: none;
-}
-.gatefold-inside.visible {
-  opacity: 1; pointer-events: auto;
-}
-
-
-/* Loading placeholder */
-.gatefold-loading {
-  position: absolute;
-  /* covers just the closed-card area (wings) */
-  left: var(--wing-w);
-  width: calc(var(--wing-w) * 2);
-  top: 0; bottom: 0;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 40%, var(--green) 100%);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  color: rgba(250,247,240,.55);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: .8rem; letter-spacing: .18em; text-transform: uppercase;
-  z-index: 20; transition: opacity .4s ease;
-}
-.gatefold-loading.hidden { opacity: 0; pointer-events: none; }
-.loading-spinner {
-  width: 20px; height: 20px; flex-shrink: 0;
-  border: 1px solid rgba(184,149,74,.25);
-  border-top-color: rgba(184,149,74,.8);
-  border-radius: 50%; animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Wings ──────────────────────────────── */
-.wing {
-  position: absolute; top: 0; bottom: 0;
-  width: var(--wing-w);
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transition: transform 1.15s cubic-bezier(.4,0,.2,1);
-}
-
-/* LEFT wing: starts at x = wing-w (25% of open-w), hinged on LEFT edge
-   OPEN: rotateY(+180deg) → sweeps toward viewer, ends at x = [0, wing-w] */
-.wing-left {
-  left: var(--wing-w);
-  transform-origin: left center;
-  border-radius: 12px 0 0 12px;
-}
-
-/* RIGHT wing: starts at x = 2×wing-w (50% of open-w), hinged on RIGHT edge
-   right: wing-w means right edge is at open-w - wing-w = 3×wing-w from left
-   OPEN: rotateY(-180deg) → sweeps toward viewer, ends at x = [3×wing-w, 4×wing-w] */
-.wing-right {
-  right: var(--wing-w);
-  transform-origin: right center;
-  border-radius: 0 12px 12px 0;
-}
-
-.gatefold.open .wing-left  { transform: rotateY(-180deg); }
-.gatefold.open .wing-right { transform: rotateY( 180deg); }
-
-/* Wing faces */
-.wing-face {
-  position: absolute; inset: 0;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  border-radius: inherit;
-}
-
-/* FRONT face = cover panel (page 2 extremes)
-   background-size: 400% → image rendered at full open-w width;
-   position 0%   = left  25% of image (panel 1)
-   position 100% = right 25% of image (panel 2) */
-.wing-front {
-  background-size: 400% 100%;
-  background-repeat: no-repeat;
-}
-.wing-left  .wing-front { background-position: 100% 50%; }
-.wing-right .wing-front { background-position:   0% 50%; }
-
-/* BACK face – intentionally transparent; back panel handled by .gatefold-back */
-.wing-back {
-  transform: rotateY(180deg);
-}
-
-/* Single back panel covering the full centre 50% of the closed card.
-   rotateY(180deg) faces it backward; scaleX(-1) counters the mirror so
-   the image reads correctly when the card is tilted to show its back.
-   background-size: 200% → image rendered at full open-w; position 50%
-   shows exactly the centre 50% of the PDF page 2. */
-.gatefold-back {
-  position: absolute;
-  left: var(--wing-w);
-  width: calc(var(--wing-w) * 2);
-  top: 0; bottom: 0;
-  border-radius: 12px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: rotateY(180deg);
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  pointer-events: none;
-  z-index: 1;
-  visibility: hidden;
-}
-
-/* Open-card shadow (replaces cover-shadow once open) */
-.gatefold-inside-shadow {
-  position: absolute; inset: 0;
-  border-radius: 12px;
-  box-shadow:
-    0 24px 80px rgba(15,30,26,.38),
-    0  6px 20px rgba(15,30,26,.20);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .5s .3s ease;
-  z-index: 0;
-}
-.gatefold.open .gatefold-inside-shadow { opacity: 1; }
-
-/* ── Hint texts ─────────────────────────── */
-.interact-hint {
-  font-size: .68rem; letter-spacing: .15em; text-transform: uppercase;
-  color: var(--green); font-weight: 300;
-  display: flex; align-items: center; gap: 8px;
-  opacity: 0; transition: opacity .6s ease; text-align: center;
-}
-.interact-hint.visible { opacity: .5; }
-.interact-hint::before, .interact-hint::after {
-  content: ''; display: block; width: 20px; height: 1px;
-  background: var(--green); opacity: .4;
-}
-
-/* ── CTA ────────────────────────────────── */
-.cta-area {
-  display: flex; flex-direction: column; align-items: center; gap: 1rem;
-  opacity: 0; transition: opacity .6s ease;
-}
-.cta-area.visible { opacity: 1; }
-.cta-message {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem; font-weight: 300; font-style: italic;
-  color: var(--green); text-align: center; letter-spacing: .03em;
-}
-.cta-btn {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 12px 28px; background: transparent;
-  border: 1px solid rgba(61,107,94,.35); border-radius: 2px;
-  font-family: 'Jost', sans-serif;
-  font-size: .68rem; letter-spacing: .22em; text-transform: uppercase;
-  color: var(--green); text-decoration: none; font-weight: 400; cursor: pointer;
-  transition: background .3s, border-color .3s, color .3s;
-}
-.cta-btn:hover { background: var(--green); color: var(--cream); border-color: var(--green); }
-
-/* ── Footer ─────────────────────────────── */
-.footer {
-  margin-top: 1.5rem; text-align: center;
-  opacity: 0; animation: fadeUp .8s .8s ease forwards;
-}
-.footer-text {
-  font-size: .62rem; letter-spacing: .12em;
-  color: rgba(61,107,94,.4); text-transform: uppercase; font-weight: 300;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Mobile ─────────────────────────────── */
-@media (max-width: 520px) {
-  :root {
-    --wing-w: 72px;
-    --open-w: 288px;
-    --card-h: 200px;
-    --env-w:  220px;
-    --env-h:  248px;
-  }
-  .cta-btn {
-    border-color: var(--terracotta);
-    color: var(--terracotta);
-  }
-}
-@media (max-width: 360px) {
-  :root {
-    --wing-w: 60px;
-    --open-w: 240px;
-    --card-h: 170px;
-    --env-w:  190px;
-    --env-h:  210px;
-  }
-}
-</style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-<div class="scene">
+<p class="brand">Flores à Beira-Rio</p>
 
-  <!-- Brand header -->
-  <div class="brand">
-    <div class="brand-name">Flores à Beira-Rio</div>
-    <div class="brand-tagline">Vale Presente · Preservação Botânica</div>
-  </div>
+<div class="scene-wrap">
+  <div class="ground-shadow" id="ground-shadow"></div>
+  <div class="scene">
+    <div class="card" id="card">
 
-  <!-- Envelope scene -->
-  <div class="envelope-scene" id="envelopeScene">
-    <div class="envelope-shadow" id="envShadow"></div>
-
-    <!-- ─── Card wrapper (lives inside envelope until it rises) ─── -->
-    <div class="card-wrapper" id="cardWrapper">
-      <div class="card-perspective">
-        <div class="card-tilt" id="cardTilt">
-
-          <!-- ══ GATEFOLD ══════════════════════════════════════
-               Container = full OPEN width (4 × wing-w).
-               Wings sit at x=[wing-w … 2×wing-w] and x=[2×wing-w … 3×wing-w]
-               when closed; fold to x=[0…wing-w] and x=[3×wing-w…4×wing-w] when open.
-          ══════════════════════════════════════════════════════ -->
-          <div class="gatefold" id="gatefold">
-
-            <!-- Permanent bg fill — first child so wings (later in DOM) paint on top.
-                 Prevents the page background showing through during wing rotation. -->
-            <div class="gatefold-inner-bg"></div>
-
-            <!-- Shadow that switches from cover-shadow to inside-shadow -->
-            <div class="cover-shadow" id="coverShadow"></div>
-            <div class="gatefold-inside-shadow"></div>
-
-            <!-- Loading overlay -->
-            <div class="gatefold-loading" id="gatefoldLoading">
-              <div class="loading-spinner"></div>
-              a carregar
-            </div>
-
-            <!-- Inside spread – page 1 of PDF (full interior design) -->
-            <div class="gatefold-inside" id="gatefoldInside"></div>
-
-            <!-- Back panel – centre 50% of PDF page 2 (single unbroken surface) -->
-            <div class="gatefold-back" id="gatefoldBack"></div>
-
-            <!-- LEFT wing  – outer face = left  25% of PDF page 2 (panel 1 = cover left) -->
-            <div class="wing wing-left" id="wingLeft">
-              <div class="wing-face wing-front" id="wingFrontLeft"></div>
-              <div class="wing-face wing-back"></div>
-            </div>
-
-            <!-- RIGHT wing – outer face = right 25% of PDF page 2 (panel 2 = cover right) -->
-            <div class="wing wing-right" id="wingRight">
-              <div class="wing-face wing-front" id="wingFrontRight"></div>
-              <div class="wing-face wing-back"></div>
-            </div>
-
-          </div><!-- /gatefold -->
-
-        </div><!-- /card-tilt -->
-      </div><!-- /card-perspective -->
-    </div><!-- /card-wrapper -->
-
-    <!-- Envelope body -->
-    <div class="envelope" id="envelope" onclick="openEnvelope()">
-      <div class="env-body">
-        <div class="env-sides"></div>
-        <div class="env-bottom"></div>
+      <div class="card-face card-front" id="face-front">
+        <canvas id="canvas-front"></canvas>
+        <div class="spinner"></div>
       </div>
-      <div class="env-flap"><div class="env-flap-face"></div></div>
-      <div class="env-seal">
-        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="22" cy="22" r="21"
-            fill="#3D6B5E" fill-opacity=".12"
-            stroke="#3D6B5E" stroke-width=".8" stroke-opacity=".4"/>
-          <circle cx="22" cy="22" r="16"
-            stroke="#B8954A" stroke-width=".6" stroke-opacity=".5"/>
-          <g stroke="#3D6B5E" stroke-width=".8" stroke-opacity=".7" fill="none">
-            <ellipse cx="22" cy="22" rx="4" ry="7"/>
-            <ellipse cx="22" cy="22" rx="4" ry="7" transform="rotate(60 22 22)"/>
-            <ellipse cx="22" cy="22" rx="4" ry="7" transform="rotate(120 22 22)"/>
-          </g>
-          <circle cx="22" cy="22" r="2.5" fill="#B8954A" fill-opacity=".5"/>
-        </svg>
+
+      <div class="card-face card-back" id="face-back">
+        <canvas id="canvas-back"></canvas>
+        <div class="spinner"></div>
       </div>
+
+      <div class="card-edge edge-top"></div>
+      <div class="card-edge edge-bottom"></div>
+      <div class="card-edge edge-left"></div>
+      <div class="card-edge edge-right"></div>
+
     </div>
-
-    <div class="click-hint" id="clickHint">clica para abrir</div>
-  </div><!-- /envelope-scene -->
-
-  <!-- Hint shown after card rises -->
-  <div class="interact-hint" id="interactHint">clica no cartão para o abrir</div>
-
-  <!-- CTA -->
-  <div class="cta-area" id="ctaArea">
-    <div class="cta-message" id="ctaMessage">Uma recordação para toda a vida.</div>
-    <a href="https://floresabeirario.pt/como-funciona" class="cta-btn"
-       target="_blank" rel="noopener">Como funciona →</a>
   </div>
+</div>
 
-  <div class="footer">
-    <div class="footer-text">© Flores à Beira-Rio · Ceira, Coimbra</div>
+<div class="bottom-ui">
+  <div class="hint" id="hint">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
+    </svg>
+    Arraste para explorar
   </div>
+  <button class="btn-flip" id="btn-flip" aria-label="Virar o cartão">
+    Virar o cartão
+  </button>
+</div>
 
-</div><!-- /scene -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-/* ═══════════════════════════════════════════
-   URL params (future Google Sheets integration)
-   ═══════════════════════════════════════════ */
-(function () {
-  const p = new URLSearchParams(window.location.search);
-  if (p.get('mensagem')) document.getElementById('ctaMessage').textContent = p.get('mensagem');
-})();
+  /* ── PDF.js ─────────────────────────────────────────────────────── */
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/* ═══════════════════════════════════════════
-   PDF rendering via PDF.js
-   ═══════════════════════════════════════════ */
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  /* ── DOM refs ───────────────────────────────────────────────────── */
+  const card        = document.getElementById('card');
+  const hint        = document.getElementById('hint');
+  const btnFlip     = document.getElementById('btn-flip');
+  const groundShadow = document.getElementById('ground-shadow');
 
-/* Rendered data URLs:
-     insideDataUrl  = page 1 → full inside spread (shown when gatefold opens)
-     coverDataUrl   = page 2 → contains panel 1 (left 25%) + panel 3 (center) + panel 2 (right 25%)
-*/
-let insideDataUrl = null;
-let coverDataUrl  = null;
+  /* ── Spring state ───────────────────────────────────────────────── */
+  /*
+    rotY  : current Y rotation (degrees) — drives the flip animation
+    rotX  : current X tilt (degrees, clamped ±13) — follows vertical drag
+    entryY: vertical offset (px) — used only for the entrance animation
+    Targets (tY, tX, tEY) are set by snapping logic and drag.
+    Velocities (vY, vX, vEY) are updated each tick by spring formula:
+      vel = vel * DAMP + (target − pos) * STIFF
+  */
+  const STIFF = 0.11, DAMP = 0.70;
 
-async function pageToDataURL(page, targetWidth) {
-  const base  = page.getViewport({ scale: 1 });
-  const scale = Math.min(targetWidth / base.width, 2.8);
-  const vp    = page.getViewport({ scale });
-  const canvas = document.createElement('canvas');
-  canvas.width  = Math.round(vp.width);
-  canvas.height = Math.round(vp.height);
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-  return canvas.toDataURL('image/jpeg', 0.92);
-}
+  let rotY = -22, rotX = 0, entryY = 26;
+  let tY = 0,    tX = 0,   tEY = 0;
+  let vY = 0,    vX = 0,   vEY = 0;
+  let raf = null;
 
-async function loadPDF() {
-  try {
-    const pdf    = await pdfjsLib.getDocument('voucher_azul.pdf').promise;
-    const page1  = await pdf.getPage(1);
-    const page2  = pdf.numPages >= 2 ? await pdf.getPage(2) : page1;
+  /* ── Interaction state ──────────────────────────────────────────── */
+  let dragging    = false;
+  let lx = 0,  ly = 0;
+  let interacted  = false;
+  let showingBack = false;
 
-    /* Render at a resolution that looks sharp on the screen,
-       accounting for high-DPI (retina) mobile displays */
-    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-    const targetPx = Math.min(window.innerWidth * dpr * 1.8, 2400);
+  /* ── Apply transform + update shadow ───────────────────────────── */
+  function apply() {
+    card.style.transform =
+      `translateY(${entryY.toFixed(2)}px) ` +
+      `rotateY(${rotY.toFixed(3)}deg) ` +
+      `rotateX(${rotX.toFixed(3)}deg)`;
 
-    /* Render both pages in parallel */
-    [insideDataUrl, coverDataUrl] = await Promise.all([
-      pageToDataURL(page1, targetPx),
-      pageToDataURL(page2, targetPx),
-    ]);
-
-    applyToCard(page2);  /* use page 2 aspect ratio for sizing (covers + layout) */
-
-  } catch (err) {
-    console.warn('PDF error:', err);
-    showFallback();
+    /*
+      Shadow: most opaque when card faces viewer (edge-on angle ≈ 90°),
+      lighter when card is edge-on to viewer.
+    */
+    const edgeOn = Math.abs(((rotY % 180) + 180) % 180 - 90); // 0 = edge-on, 90 = face-on
+    groundShadow.style.opacity = 0.4 + (edgeOn / 90) * 0.55;
   }
-}
 
-function applyToCard(page2) {
-  /* Compute card size from PDF page 2 aspect ratio */
-  const vp      = page2.getViewport({ scale: 1 });
-  const pdfAR   = vp.width / vp.height;          /* full page 2 aspect ratio */
+  /* ── Spring tick ────────────────────────────────────────────────── */
+  function tick() {
+    vY  = vY  * DAMP + (tY  - rotY)   * STIFF;
+    vX  = vX  * DAMP + (tX  - rotX)   * STIFF;
+    vEY = vEY * DAMP + (tEY - entryY) * STIFF;
 
-  /* Full open width: fits in viewport comfortably */
-  const isMob  = window.innerWidth <= 600;
-  const openW  = Math.min(window.innerWidth - (isMob ? 28 : 40), isMob ? 480 : 760);
-  const wingW  = Math.round(openW / 4);           /* each wing = 25% of open */
-  const cardH  = Math.round(openW / pdfAR);       /* height from aspect ratio */
-  /* Envelope covers the CLOSED card (2×wing-w) plus a generous margin */
-  const envW   = Math.min(wingW * 2 + 72, window.innerWidth - 12);
-  const envH   = Math.round(cardH * 1.24);
+    rotY   += vY;
+    rotX   += vX;
+    entryY += vEY;
 
-  const root = document.documentElement.style;
-  root.setProperty('--wing-w', wingW + 'px');
-  root.setProperty('--open-w', openW + 'px');
-  root.setProperty('--card-h', cardH + 'px');
-  root.setProperty('--env-w',  envW  + 'px');
-  root.setProperty('--env-h',  envH  + 'px');
+    apply();
 
-  /* ── Inside spread (page 1) ───────────────────────────────────────────
-     Shows the full interior design. background-size: 100% 100% fills the
-     gatefold-inside element (which is inset: 0 = full open-w × card-h). */
-  document.getElementById('gatefoldInside').style.backgroundImage = `url('${insideDataUrl}')`;
+    const settled =
+      Math.abs(tY  - rotY)   < 0.015 && Math.abs(vY)  < 0.015 &&
+      Math.abs(tX  - rotX)   < 0.015 && Math.abs(vX)  < 0.015 &&
+      Math.abs(tEY - entryY) < 0.015 && Math.abs(vEY) < 0.015;
 
-  /* ── Wing fronts (page 2 extremes) ───────────────────────────────────
-     Both wings share the SAME page-2 image.
-     background-size: 400% means the image is scaled to 4× the element width
-     = the full open-w. Positioned at 0% shows the leftmost 25%;
-     at 100% shows the rightmost 25%.                                     */
-  document.getElementById('wingFrontLeft').style.backgroundImage  = `url('${coverDataUrl}')`;
-  document.getElementById('wingFrontRight').style.backgroundImage = `url('${coverDataUrl}')`;
-  document.getElementById('gatefoldBack').style.backgroundImage   = `url('${coverDataUrl}')`;
-
-  /* Hide loading overlay */
-  const loading = document.getElementById('gatefoldLoading');
-  loading.classList.add('hidden');
-  setTimeout(() => { loading.style.display = 'none'; }, 450);
-}
-
-function showFallback() {
-  const loading = document.getElementById('gatefoldLoading');
-  loading.innerHTML = `
-    <div style="text-align:center;padding:1.5rem">
-      <div style="font-family:'Cormorant Garamond',serif;color:rgba(250,247,240,.8);
-                  font-size:1.3rem;letter-spacing:.15em">Vale Presente</div>
-      <div style="color:rgba(184,149,74,.7);font-size:.72rem;
-                  letter-spacing:.16em;margin-top:.4rem">Flores à Beira-Rio</div>
-    </div>`;
-}
-
-loadPDF();
-
-/* ═══════════════════════════════════════════
-   Envelope → card rise → gatefold interaction
-   ═══════════════════════════════════════════ */
-let envelopeOpened = false;
-
-function openEnvelope() {
-  if (envelopeOpened) return;
-  envelopeOpened = true;
-
-  document.getElementById('envelope').classList.add('open');
-  document.getElementById('envShadow').classList.add('open');
-  const hint = document.getElementById('clickHint');
-  hint.style.opacity = '0';
-  const env = document.getElementById('envelope');
-  env.style.cursor = 'default';
-  env.onclick = null;
-
-  setTimeout(riseCard, 600);
-}
-
-function riseCard() {
-  const w = document.getElementById('cardWrapper');
-  w.classList.add('rising');
-  setTimeout(settleCard, 1350);
-}
-
-function settleCard() {
-  const wrapper  = document.getElementById('cardWrapper');
-  const scene    = document.getElementById('envelopeScene');
-  const envelope = document.getElementById('envelope');
-
-  /* Briefly fade card out — hides the positional jump from absolute → flow */
-  wrapper.style.transition = 'opacity .18s ease';
-  wrapper.style.opacity    = '0';
-
-  setTimeout(() => {
-    /* Reposition while hidden */
-    wrapper.style.transition = 'none';
-    wrapper.classList.remove('rising');
-    wrapper.classList.add('risen');
-    scene.parentNode.insertBefore(wrapper, scene);
-
-    /* Fade envelope + shadow + collapse scene height */
-    envelope.classList.add('fading');
-    const shadow = document.getElementById('envShadow');
-    shadow.style.transition = 'opacity .4s ease';
-    shadow.style.opacity    = '0';
-    scene.style.height = '0';
-
-    /* Fade card back in at new position */
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      wrapper.style.transition = 'opacity .38s ease';
-      wrapper.style.opacity    = '1';
-      /* After fade completes: remove inline opacity/transition so the element
-         is no longer in a compositing layer — Chrome Android flattens
-         preserve-3d on descendants when an ancestor has an active transition. */
-      setTimeout(() => {
-        wrapper.classList.add('settled');
-        wrapper.style.transition = '';
-        wrapper.style.opacity    = '';
-      }, 450);
-    }));
-
-    setTimeout(() => {
-      document.getElementById('interactHint').classList.add('visible');
-      document.getElementById('ctaArea').classList.add('visible');
-    }, 520);
-
-    initCardInteraction();
-  }, 220);
-}
-
-/* ═══════════════════════════════════════════
-   Card interaction: free 3D drag + gatefold open
-   ═══════════════════════════════════════════ */
-function initCardInteraction() {
-  const tilt     = document.getElementById('cardTilt');
-  const gatefold = document.getElementById('gatefold');
-  const wrapper  = document.getElementById('cardWrapper');
-  const hint     = document.getElementById('interactHint');
-
-  let ry = -6, rx = 3;   /* current rotation (lerped toward target) */
-  let ty = -6, tx = 3;   /* target rotation — accumulates with drag  */
-  let isOpen     = false;
-  let isDragging = false;
-  let dragMoved  = false;
-  let prevX = 0, prevY = 0;
-  let startX = 0, startY = 0;
-  let ptrTime = 0;
-
-  const gInside  = document.getElementById('gatefoldInside');
-  const gBack    = document.getElementById('gatefoldBack');
-  /* Detect if backface-visibility is broken (Chrome Android flattens preserve-3d).
-     We test by checking if the browser is Android Chrome. */
-  const needsBVFix = /Android/i.test(navigator.userAgent);
-
-  /* Smooth lerp — chases target but target never resets on its own */
-  (function tick() {
-    ry += (ty - ry) * .10;
-    rx += (tx - rx) * .10;
-    tilt.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
-
-    if (needsBVFix) {
-      /* Chrome Android ignores backface-visibility in nested preserve-3d.
-         Manually show/hide inside vs back panel based on card rotation. */
-      const normRy     = ((ry % 360) + 360) % 360;
-      const showBack   = normRy > 90 && normRy < 270;
-      gBack.style.visibility  = showBack ? '' : 'hidden';
-      /* only touch inside visibility when it's supposed to be visible (open state) */
-      if (gInside.classList.contains('visible')) {
-        gInside.style.visibility = showBack ? 'hidden' : '';
-      }
-    }
-
-    requestAnimationFrame(tick);
-  })();
-
-  /* ── Mouse ── */
-  wrapper.addEventListener('mousedown', e => {
-    isDragging = true; dragMoved = false;
-    startX = e.clientX; startY = e.clientY;
-    prevX  = e.clientX; prevY  = e.clientY;
-    ptrTime = Date.now();
-    e.preventDefault();
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - prevX;
-    const dy = e.clientY - prevY;
-    prevX = e.clientX; prevY = e.clientY;
-    if (Math.abs(e.clientX - startX) > 4 || Math.abs(e.clientY - startY) > 4) dragMoved = true;
-    ty += dx * 0.55;
-    tx -= dy * 0.38;
-  });
-
-  document.addEventListener('mouseup', e => {
-    if (!isDragging) return;
-    isDragging = false;
-    if (!dragMoved && Date.now() - ptrTime < 290) toggle();
-    /* card stays exactly where it is — no snap-back */
-  });
-
-  /* ── Touch ── */
-  let tx0 = 0, ty0 = 0, tprevX = 0, tprevY = 0, tmov = false;
-  wrapper.addEventListener('touchstart', e => {
-    tx0    = e.touches[0].clientX; ty0    = e.touches[0].clientY;
-    tprevX = tx0;                  tprevY = ty0;
-    tmov = false; ptrTime = Date.now();
-  }, { passive: true });
-
-  wrapper.addEventListener('touchmove', e => {
-    const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
-    const dx = cx - tprevX, dy = cy - tprevY;
-    tprevX = cx; tprevY = cy;
-    if (Math.abs(cx - tx0) > 12 || Math.abs(cy - ty0) > 12) tmov = true;
-    ty += dx * 0.55;
-    tx -= dy * 0.38;
-  }, { passive: true });
-
-  wrapper.addEventListener('touchend', () => {
-    if (!tmov && Date.now() - ptrTime < 400) toggle();
-  });
-
-  /* ── Open / close gatefold ── */
-  function toggle() {
-    isOpen = !isOpen;
-
-    if (isOpen) {
-      ty = 0; tx = 0;   /* straighten before opening */
-      gatefold.classList.add('open');
-      setTimeout(() => {
-        gInside.classList.add('visible');
-      }, 880);
-      hint.textContent = 'clica novamente para fechar';
-      hint.classList.add('visible');
+    if (!settled) {
+      raf = requestAnimationFrame(tick);
     } else {
-      gInside.classList.remove('visible');
-      gInside.style.visibility = '';
-      setTimeout(() => { gatefold.classList.remove('open'); }, 380);
-      hint.textContent = 'clica no cartão para o abrir';
+      rotY = tY; rotX = tX; entryY = tEY;
+      vY = vX = vEY = 0;
+      apply();
+      raf = null;
     }
   }
-}
+
+  function startSpring() {
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  /* ── Snap to nearest face (0° = front, 180° = back) ────────────── */
+  function snapToNearest() {
+    const norm    = ((rotY % 360) + 360) % 360;
+    const front   = norm < 90 || norm >= 270;
+    const base    = Math.round(rotY / 360) * 360;
+    let   snap    = front ? base : base + 180;
+
+    /* shortest path */
+    while (snap - rotY >  180) snap -= 360;
+    while (snap - rotY < -180) snap += 360;
+
+    tY = snap;
+    tX = 0;
+    showingBack = !front;
+  }
+
+  /* ── Drag ───────────────────────────────────────────────────────── */
+  function onDown(x, y) {
+    dragging = true;
+    lx = x; ly = y;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    vY = vX = 0;
+  }
+
+  function onMove(x, y) {
+    if (!dragging) return;
+    const dx = x - lx, dy = y - ly;
+    rotY += dx * 0.46;
+    rotX  = Math.max(-13, Math.min(13, rotX - dy * 0.22));
+    lx = x; ly = y;
+    apply();
+  }
+
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    snapToNearest();
+    startSpring();
+    if (!interacted) {
+      interacted = true;
+      hint.classList.remove('show');
+    }
+  }
+
+  /* Mouse */
+  card.addEventListener('mousedown', e => {
+    e.preventDefault();
+    onDown(e.clientX, e.clientY);
+  });
+  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup',   ()  => onUp());
+
+  /* Touch */
+  card.addEventListener('touchstart', e => {
+    e.preventDefault();
+    onDown(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+
+  window.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => onUp());
+
+  /* ── Flip button ─────────────────────────────────────────────────── */
+  btnFlip.addEventListener('click', () => {
+    showingBack = !showingBack;
+    let snap = showingBack
+      ? Math.round(rotY / 360) * 360 + 180
+      : Math.round(rotY / 360) * 360;
+    while (snap - rotY >  180) snap -= 360;
+    while (snap - rotY < -180) snap += 360;
+    tY = snap; tX = 0;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    vY = vX = 0;
+    startSpring();
+  });
+
+  /* ── PDF Rendering ───────────────────────────────────────────────── */
+  /*
+    Render at 2× or 3× pixel density for retina crispness.
+    CSS sets canvas to 100%×100% of the face element, so the high-res
+    bitmap is downscaled smoothly by the browser.
+  */
+  const PIXEL_SCALE = Math.min(window.devicePixelRatio >= 2 ? 3 : 2, 3);
+
+  async function renderPage(pdf, pageNum, canvasId, faceId) {
+    const page   = await pdf.getPage(pageNum);
+    const canvas = document.getElementById(canvasId);
+    const face   = document.getElementById(faceId);
+
+    const vp0    = page.getViewport({ scale: 1 });
+    const cssW   = canvas.offsetWidth  || 740;
+    const scale  = (cssW * PIXEL_SCALE) / vp0.width;
+    const vp     = page.getViewport({ scale });
+
+    canvas.width  = Math.round(vp.width);
+    canvas.height = Math.round(vp.height);
+
+    await page.render({
+      canvasContext: canvas.getContext('2d'),
+      viewport: vp,
+    }).promise;
+
+    face.classList.add('ready');
+  }
+
+  async function loadPDF() {
+    try {
+      const pdf = await pdfjsLib.getDocument('./voucher_azul.pdf').promise;
+      await Promise.all([
+        renderPage(pdf, 1, 'canvas-front', 'face-front'),
+        renderPage(pdf, 2, 'canvas-back',  'face-back'),
+      ]);
+    } catch (err) {
+      console.warn('[fbr-voucher] PDF load failed:', err);
+      /* Graceful fallback: show warm cream faces */
+      ['face-front', 'face-back'].forEach(id =>
+        document.getElementById(id).classList.add('ready')
+      );
+    }
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────── */
+  function init() {
+    /* Apply initial tilted state before fade-in */
+    apply();
+
+    /* Start loading PDF (async, non-blocking) */
+    loadPDF();
+
+    /* Fade card in */
+    requestAnimationFrame(() => card.classList.add('loaded'));
+
+    /* Run entrance spring: from (rotY=−22, entryY=26) → (0, 0) */
+    startSpring();
+
+    /* After entrance settles, show hint and run a wobble tease */
+    setTimeout(() => {
+      if (interacted) return;
+
+      hint.classList.add('show');
+      btnFlip.classList.add('show');
+
+      /* Wobble: lean right, return to center */
+      setTimeout(() => {
+        if (interacted) return;
+        tY = 16;
+        startSpring();
+
+        setTimeout(() => {
+          if (interacted) return;
+          tY = 0;
+          startSpring();
+        }, 750);
+      }, 300);
+
+    }, 1400);
+  }
+
+  init();
 </script>
 </body>
 </html>

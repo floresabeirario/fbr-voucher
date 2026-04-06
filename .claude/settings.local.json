@@ -8,7 +8,14 @@
       "Bash(cmd /c start http://localhost:8080)",
       "Bash(cmd /c \"start http://localhost:8080\")",
       "Bash(netstat -ano)",
-      "Bash(findstr 8080)"
+      "Bash(findstr 8080)",
+      "Bash(python -c ':*)",
+      "Bash(py -3 -c \"import fitz; doc = fitz.open\\('c:/Users/maria/Documents/fbr-voucher/fbr-voucher/voucher_azul.pdf'\\); print\\(len\\(doc\\), 'pages'\\); [print\\(f'p{i+1}: {p.rect}'\\) for i,p in enumerate\\(doc\\)]\")",
+      "Bash(ls /c/Python*)",
+      "Read(//c/Users/maria/AppData/Local/Programs/**)",
+      "Bash(/c/Users/maria/AppData/Local/Microsoft/WindowsApps/python3.exe -c \"print\\('hello'\\)\")",
+      "Bash(node -e \"console.log\\('node ok'\\)\")",
+      "Bash(node -e ':*)"
     ]
   }
 }
