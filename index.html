@@ -377,6 +377,28 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── Mobile: voucher fills screen when closed, scrollable when open ── */
+    @media (max-width: 600px) {
+      :root {
+        /* Center panel = 50% of --w; we want it ≈ 90vw when closed.
+           So --w ≈ 180vw. Also cap by height so it never taller than viewport. */
+        --w: min(calc(90vw * 2), calc(72vh * 1.4142));
+      }
+
+      /* Clip the folded flaps (off-screen) when closed */
+      .hero-section {
+        overflow-x: hidden;
+      }
+
+      /* When open, reveal full card with horizontal scroll */
+      body.voucher-open {
+        overflow-x: auto;
+      }
+      body.voucher-open .hero-section {
+        overflow-x: visible;
+      }
+    }
+
     /* ═══════════════════════════════════════════════════════════════
        NEXT CHAPTER — "O que fazer agora?"
     ═══════════════════════════════════════════════════════════════ */
@@ -925,6 +947,7 @@
     tX     = 0;
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold  = 0;
+    document.body.classList.toggle('voucher-open', isOpen);
     startSpring();
   }
 
