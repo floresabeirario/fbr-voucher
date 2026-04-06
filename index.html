@@ -24,12 +24,13 @@
     }
 
     :root {
-      /* Full card: A4 landscape — 297/210 = 1.4142 */
+      /* Full card: A4 landscape — 297/210 ≈ 1.4142 */
       --w:  min(740px, 92vw, calc(72vh * 1.4142));
       --h:  calc(var(--w) / 1.4142);
-      --pw: calc(var(--w) / 3);   /* one panel = one third */
-      --t:  2px;                  /* paper thickness */
-      --ht: 1px;                  /* half thickness */
+      --pw: calc(var(--w) / 4);         /* flap width  = 25% */
+      --cw: calc(var(--w) / 2);         /* center width = 50% */
+      --t:  2px;                        /* paper thickness */
+      --ht: 1px;
       --verde:     #3D6B5E;
       --creme:     #FAF7F0;
       --terracota: #C4846B;
@@ -94,22 +95,44 @@
       perspective-origin: 50% 42%;
     }
 
-    /* ── Gatefold (outer shell — rotates on drag) ───────────────── */
+    /* ── Gatefold ───────────────────────────────────────────────── */
     /*
-      3-panel gatefold:
-        ┌──────────┬──────────┬──────────┐
-        │ flap-L   │  center  │  flap-R  │  ← OPEN (flat, fold=1)
-        └──────────┴──────────┴──────────┘
+      Layout (open, all panels flat):
+        ┌─────────┬──────────────────┬─────────┐
+        │  25%    │       50%        │   25%   │
+        │ flap-L  │     center       │ flap-R  │
+        └─────────┴──────────────────┴─────────┘
+                  ↑                  ↑
+              hinge at W/4       hinge at 3W/4
 
-        ├──(fold)──┤          ├──(fold)──┤
-        flap-L hinge = right edge of left panel  (x = W/3)
-        flap-R hinge = left  edge of right panel (x = 2W/3)
+      CLOSED  (fold=0): left flap rotateY(-180°), right flap rotateY(+180°)
+                         → flaps fold backward over center
+      OPEN    (fold=1): both flaps at rotateY(0°) — fully flat
 
-      CLOSED (fold=0):
-        left  flap → rotateY(-180°) — folds backward over center
-        right flap → rotateY(+180°) — folds backward over center
-      OPEN (fold=1):
-        both flaps → rotateY(0°) — fully unfolded, flat
+      PDF page assignment:
+        Page 1 (inner content, seen when OPEN from front):
+          canvas-inner-left   = page1  [0% – 25%]
+          canvas-inner-center = page1  [25% – 75%]
+          canvas-inner-right  = page1  [75% – 100%]
+
+        Page 2 (exterior, seen when looking at back or closed):
+          canvas-center-back  = page2  [25% – 75%]  (static — center panel back face)
+
+          Flap back-face canvases are DYNAMIC (swapped at fold = 0.5):
+            ┌─ CLOSED side (fold < 0.5) ────────────────────────────────┐
+            │ canvas-cover-left  = page2 [25% – 50%]                    │
+            │ canvas-cover-right = page2 [50% – 75%]                    │
+            │ → together they show page2 central 50% over the center    │
+            └───────────────────────────────────────────────────────────┘
+            ┌─ OPEN side (fold > 0.5) ──────────────────────────────────┐
+            │ canvas-cover-left  = page2 [75% – 100%]                   │
+            │ canvas-cover-right = page2 [0%  – 25%]                    │
+            │ → when gatefold is flipped (rotY=180°) these map to:      │
+            │     cover-right @ screen-left  (0–25%) = page2 [0–25%]   │
+            │     center-back @ screen-center        = page2 [25–75%]  │
+            │     cover-left  @ screen-right (75–100%)= page2 [75–100%]│
+            │ → full page 2 visible ✓                                   │
+            └───────────────────────────────────────────────────────────┘
     */
     .gatefold {
       width: var(--w);
@@ -128,37 +151,32 @@
     .panel {
       position: absolute;
       top: 0;
-      width: var(--pw);
       height: 100%;
       transform-style: preserve-3d;
     }
 
-    /* Center panel: never rotates, declared first → renders behind flaps */
+    /* Center panel (50%): fixed, no rotation. Declared first → renders
+       behind flaps when coplanar (CSS 3D painter order). */
     .panel-center {
       left: var(--pw);
+      width: var(--cw);
     }
 
-    /* Left flap: hinge at its right edge */
+    /* Left flap (25%): hinge at its right edge (x = W/4) */
     .flap-left {
       left: 0;
+      width: var(--pw);
       transform-origin: right center;
     }
 
-    /* Right flap: hinge at its left edge */
+    /* Right flap (25%): hinge at its left edge (x = 3W/4) */
     .flap-right {
       right: 0;
+      width: var(--pw);
       transform-origin: left center;
     }
 
-    /* ── Panel faces ────────────────────────────────────────────── */
-    /*
-      face-front  : visible at rotateY(0°)   → INNER CONTENT (open state)
-      face-back   : visible at rotateY(±180°) → OUTER COVER  (closed state)
-
-      Center panel has no back face (it never rotates, always shows content).
-      The center front face sits at z = ht − 0.5px so that flap cover faces
-      (at z = ht) always render in front of it when the flaps are closed over it.
-    */
+    /* ── Faces ──────────────────────────────────────────────────── */
     .panel-face {
       position: absolute;
       inset: 0;
@@ -174,18 +192,17 @@
       height: 100%;
     }
 
-    /* Front face (inner content) — slightly recessed for center panel */
-    .face-front {
-      transform: translateZ(var(--ht));
-    }
+    /* Front face: visible at rotateY(0°) — inner content (open state) */
+    .face-front { transform: translateZ(var(--ht)); }
+
+    /* Center panel front sits 0.5 px behind flap faces so flaps
+       always render in front when coplanar (closed state). */
     .panel-center .face-front {
       transform: translateZ(calc(var(--ht) - 0.5px));
     }
 
-    /* Back face (outer cover) — back of each flap */
-    .face-back {
-      transform: rotateY(180deg) translateZ(var(--ht));
-    }
+    /* Back face: visible at rotateY(±180°) — exterior/cover */
+    .face-back { transform: rotateY(180deg) translateZ(var(--ht)); }
 
     /* PDF loading placeholder */
     .panel-face::before {
@@ -215,7 +232,7 @@
       z-index: 3;
     }
 
-    /* Fold-crease shadow near the spine edges (inner faces only) */
+    /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
       background:
         linear-gradient(to right, transparent 82%, rgba(0,0,0,0.11) 100%),
@@ -228,7 +245,7 @@
     }
     .panel-center .face-front::after {
       background:
-        linear-gradient(to right, rgba(0,0,0,0.07) 0%, transparent 8%, transparent 92%, rgba(0,0,0,0.07) 100%),
+        linear-gradient(to right, rgba(0,0,0,0.07) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.07) 100%),
         linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
     }
 
@@ -252,14 +269,12 @@
       transform-origin: bottom center;
       transform: translateZ(var(--ht)) rotateX(90deg);
     }
-    /* Outer left edge of the whole gatefold */
     .p-edge-outer-left {
       top: 0; left: 0;
       width: var(--t); height: 100%;
       transform-origin: left center;
       transform: translateZ(var(--ht)) rotateY(90deg);
     }
-    /* Outer right edge of the whole gatefold */
     .p-edge-outer-right {
       top: 0; right: 0;
       width: var(--t); height: 100%;
@@ -295,30 +310,6 @@
     .hint.show { opacity: 1; }
     .hint svg  { flex-shrink: 0; opacity: 0.65; }
 
-    .btn-flip {
-      pointer-events: all;
-      background: rgba(61,107,94,0.10);
-      border: 1px solid rgba(61,107,94,0.22);
-      color: rgba(250,247,240,0.5);
-      font-family: inherit;
-      font-size: 10px;
-      letter-spacing: 0.11em;
-      text-transform: uppercase;
-      padding: 7px 20px 8px;
-      border-radius: 20px;
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      opacity: 0;
-      transition: opacity 0.55s ease, background 0.2s, color 0.2s, transform 0.1s;
-    }
-    .btn-flip.show { opacity: 1; }
-    .btn-flip:hover {
-      background: rgba(61,107,94,0.20);
-      color: rgba(250,247,240,0.85);
-    }
-    .btn-flip:active { transform: scale(0.96); }
-
     /* ── Spinner ────────────────────────────────────────────────── */
     .spinner {
       position: absolute;
@@ -352,24 +343,27 @@
     <div class="gatefold" id="gatefold">
 
       <!--
-        CENTER PANEL — fixed, never rotates.
-        Declared first so it renders behind the flaps (CSS 3D painter order).
+        CENTER PANEL (50%) — fixed, declared first → behind flaps.
+        front: page1 [25–75%]  |  back: page2 [25–75%]
       -->
       <div class="panel panel-center" id="panel-center">
         <div class="panel-face face-front" id="face-inner-center">
           <canvas id="canvas-inner-center"></canvas>
           <div class="spinner"></div>
         </div>
+        <div class="panel-face face-back" id="face-center-back">
+          <canvas id="canvas-center-back"></canvas>
+        </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
       </div>
 
       <!--
-        LEFT FLAP — hinge: right edge (x = W/3).
-        CLOSED: rotateY(-180°) — folds backward over center.
-        OPEN:   rotateY(0°).
-        face-front canvas = left third of page 1 (inner content).
-        face-back  canvas = center third of page 2 (cover, shown when closed).
+        LEFT FLAP (25%) — hinge: right edge.
+        front: page1 [0–25%]
+        back (dynamic):
+          closed side → page2 [25–50%]  (shows left half of closed cover)
+          open side   → page2 [75–100%] (shows right quarter when flipped)
       -->
       <div class="panel flap-left" id="flap-left">
         <div class="panel-face face-front" id="face-inner-left">
@@ -384,12 +378,11 @@
       </div>
 
       <!--
-        RIGHT FLAP — hinge: left edge (x = 2W/3).
-        CLOSED: rotateY(+180°) — folds backward over center.
-        OPEN:   rotateY(0°).
-        face-front canvas = right third of page 1 (inner content).
-        face-back  canvas = center third of page 2 (cover, shown when closed).
-        Declared last → renders in front of left flap when both are closed.
+        RIGHT FLAP (25%) — hinge: left edge. Declared last → in front.
+        front: page1 [75–100%]
+        back (dynamic):
+          closed side → page2 [50–75%]  (shows right half of closed cover)
+          open side   → page2 [0–25%]   (shows left quarter when flipped)
       -->
       <div class="panel flap-right" id="flap-right">
         <div class="panel-face face-front" id="face-inner-right">
@@ -413,11 +406,8 @@
          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
     </svg>
-    Arraste para explorar
+    Clique para abrir · arraste para explorar
   </div>
-  <button class="btn-flip" id="btn-flip" aria-label="Abrir o cartão">
-    Abrir
-  </button>
 </div>
 
 <script>
@@ -426,26 +416,25 @@
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   /* ── DOM refs ───────────────────────────────────────────────────── */
-  const gatefold    = document.getElementById('gatefold');
-  const flapLeft    = document.getElementById('flap-left');
-  const flapRight   = document.getElementById('flap-right');
-  const hint        = document.getElementById('hint');
-  const btnFlip     = document.getElementById('btn-flip');
+  const gatefold     = document.getElementById('gatefold');
+  const flapLeft     = document.getElementById('flap-left');
+  const flapRight    = document.getElementById('flap-right');
+  const hint         = document.getElementById('hint');
   const groundShadow = document.getElementById('ground-shadow');
+
+  const cvCoverL     = document.getElementById('canvas-cover-left');
+  const cvCoverR     = document.getElementById('canvas-cover-right');
 
   /* ── Spring constants ───────────────────────────────────────────── */
   const STIFF      = 0.11,  DAMP      = 0.70;
   const FOLD_STIFF = 0.08,  FOLD_DAMP = 0.74;
 
   /* ── Spring state ───────────────────────────────────────────────── */
-  /*
-    rotY / rotX / entryY : overall gatefold tilt & entrance offset
-    fold  : 0 = CLOSED (flaps at ±180°), 1 = OPEN (flaps at 0°)
-  */
   let rotY = -22, rotX = 0, entryY = 26;
   let tY = 0,    tX = 0,   tEY = 0;
   let vY = 0,    vX = 0,   vEY = 0;
 
+  /* fold: 0 = CLOSED (flaps ±180°), 1 = OPEN (flaps 0°) */
   let fold = 0, tFold = 0, vFold = 0;
 
   let raf = null;
@@ -454,25 +443,28 @@
   let dragging   = false;
   let lx = 0,   ly = 0;
   let interacted = false;
-  let isOpen     = false;   /* tracks whether gatefold is open */
+  let isOpen     = false;
+
+  /* ── Dynamic canvas tracking ────────────────────────────────────── */
+  /*
+    coverSide: 'closed' | 'open'
+    Flap back-face canvases are swapped when fold crosses 0.5.
+    Swap happens at ≈90° fold angle — panels are edge-on, invisible to user.
+  */
+  let coverSide = 'closed';
+  let page2Offscreen = null;   /* stored after PDF load for dynamic reuse */
 
   /* ── Apply transforms ───────────────────────────────────────────── */
   function apply() {
-    /* Overall gatefold tilt (drag) */
     gatefold.style.transform =
       `translateY(${entryY.toFixed(2)}px) ` +
       `rotateY(${rotY.toFixed(3)}deg) ` +
       `rotateX(${rotX.toFixed(3)}deg)`;
 
-    /*
-      Flap fold:
-        fold = 0 (CLOSED): left = -180°, right = +180°
-        fold = 1 (OPEN):   left =    0°, right =    0°
-    */
+    /* fold=0 → flaps at ±180° (closed), fold=1 → flaps at 0° (open) */
     flapLeft.style.transform  = `rotateY(${(-180 * (1 - fold)).toFixed(3)}deg)`;
     flapRight.style.transform = `rotateY(${( 180 * (1 - fold)).toFixed(3)}deg)`;
 
-    /* Ground shadow — brightest when face-on to viewer */
     const edgeOn = Math.abs(((rotY % 180) + 180) % 180 - 90);
     groundShadow.style.opacity = 0.4 + (edgeOn / 90) * 0.55;
   }
@@ -488,6 +480,13 @@
     rotX   += vX;
     entryY += vEY;
     fold   += vFold;
+
+    /* Swap cover canvases at the edge-on point (fold = 0.5) */
+    const newSide = fold > 0.5 ? 'open' : 'closed';
+    if (newSide !== coverSide) {
+      coverSide = newSide;
+      if (page2Offscreen) updateCoverCanvases();
+    }
 
     apply();
 
@@ -511,18 +510,61 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
-  /* ── Snap overall rotation to front-facing ──────────────────────── */
+  /* ── Cover canvas swap ──────────────────────────────────────────── */
+  function updateCoverCanvases() {
+    if (!page2Offscreen) return;
+    if (coverSide === 'closed') {
+      /*
+        Closed view: flaps fold over center.
+        Left flap back face  → appears at screen x∈[25%,50%] → page2 [25–50%]
+        Right flap back face → appears at screen x∈[50%,75%] → page2 [50–75%]
+        Together: page2 central 50% is visible.
+      */
+      copySlice(page2Offscreen, cvCoverL, 0.25, 0.50);
+      copySlice(page2Offscreen, cvCoverR, 0.50, 0.75);
+    } else {
+      /*
+        Open + flipped view (gatefold rotated 180° to see exterior):
+        Left flap back face  → appears at screen x∈[75%,100%] → page2 [75–100%]
+        Right flap back face → appears at screen x∈[0%,25%]   → page2 [0–25%]
+        Combined with center-back (always page2 [25–75%]) → full page2 visible.
+      */
+      copySlice(page2Offscreen, cvCoverL, 0.75, 1.00);
+      copySlice(page2Offscreen, cvCoverR, 0.00, 0.25);
+    }
+  }
+
+  /* ── Snap overall rotation ──────────────────────────────────────── */
   function snapGatefold() {
-    tY = Math.round(rotY / 360) * 360;
-    while (tY - rotY >  180) tY -= 360;
-    while (tY - rotY < -180) tY += 360;
+    if (isOpen) {
+      /* Open: allow front (0°) and back (180°) */
+      const norm  = ((rotY % 360) + 360) % 360;
+      const front = norm < 90 || norm >= 270;
+      const base  = Math.round(rotY / 360) * 360;
+      let   snap  = front ? base : base + 180;
+      while (snap - rotY >  180) snap -= 360;
+      while (snap - rotY < -180) snap += 360;
+      tY = snap;
+    } else {
+      /* Closed: always face front */
+      tY = Math.round(rotY / 360) * 360;
+    }
     tX = 0;
   }
 
-  /* ── Drag ───────────────────────────────────────────────────────── */
+  /* ── Drag / Click ──────────────────────────────────────────────── */
+  /*
+    Distinguish drag (rotate) from tap/click (open/close):
+    if total pointer travel < CLICK_THRESHOLD px → treat as click → toggle fold.
+  */
+  const CLICK_THRESHOLD = 6;
+  let downX = 0, downY = 0, totalTravel = 0;
+
   function onDown(x, y) {
-    dragging = true;
-    lx = x; ly = y;
+    dragging    = true;
+    lx = downX  = x;
+    ly = downY  = y;
+    totalTravel = 0;
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vY = vX = 0;
   }
@@ -530,17 +572,35 @@
   function onMove(x, y) {
     if (!dragging) return;
     const dx = x - lx, dy = y - ly;
+    totalTravel += Math.abs(dx) + Math.abs(dy);
     rotY += dx * 0.46;
     rotX  = Math.max(-13, Math.min(13, rotX - dy * 0.22));
     lx = x; ly = y;
     apply();
   }
 
+  function toggleFold() {
+    isOpen = !isOpen;
+    tFold  = isOpen ? 1 : 0;
+    tY     = Math.round(rotY / 360) * 360;
+    tX     = 0;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    vFold  = 0;
+    startSpring();
+  }
+
   function onUp() {
     if (!dragging) return;
     dragging = false;
-    snapGatefold();
-    startSpring();
+
+    if (totalTravel < CLICK_THRESHOLD) {
+      /* Tap / click → toggle open/close */
+      toggleFold();
+    } else {
+      snapGatefold();
+      startSpring();
+    }
+
     if (!interacted) {
       interacted = true;
       hint.classList.remove('show');
@@ -549,8 +609,8 @@
 
   /* Mouse */
   gatefold.addEventListener('mousedown', e => { e.preventDefault(); onDown(e.clientX, e.clientY); });
-  window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
-  window.addEventListener('mouseup',   ()  => onUp());
+  window.addEventListener('mousemove',   e => onMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup',     ()  => onUp());
 
   /* Touch */
   gatefold.addEventListener('touchstart', e => {
@@ -564,45 +624,14 @@
   }, { passive: false });
   window.addEventListener('touchend', () => onUp());
 
-  /* ── Open / Close button ────────────────────────────────────────── */
-  btnFlip.addEventListener('click', () => {
-    isOpen = !isOpen;
-    tFold  = isOpen ? 1 : 0;
-
-    /* Snap to front for a clean fold animation */
-    tY = Math.round(rotY / 360) * 360;
-    while (tY - rotY >  180) tY -= 360;
-    while (tY - rotY < -180) tY += 360;
-    tX = 0;
-
-    btnFlip.textContent = isOpen ? 'Fechar' : 'Abrir';
-    btnFlip.setAttribute('aria-label', isOpen ? 'Fechar o cartão' : 'Abrir o cartão');
-
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    vFold = 0;
-    startSpring();
-  });
 
   /* ── PDF rendering ───────────────────────────────────────────────── */
   /*
-    High-DPI rendering:
-      1. Render each PDF page to a full-width offscreen canvas.
-      2. Copy one third (left / center / right) to each panel's canvas.
-
-    Canvas assignment:
-      face-front (inner content, visible when OPEN = fold 1):
-        canvas-inner-left   ← left   third of page 1
-        canvas-inner-center ← center third of page 1
-        canvas-inner-right  ← right  third of page 1
-
-      face-back (cover, visible when CLOSED = fold 0):
-        When a flap is closed (rotateY ±180°) its back face occupies
-        world x ∈ [W/3, 2W/3] — exactly the center panel area.
-        Both flap back faces map to the same world position; the right
-        flap renders on top (last in DOM). Both get the center third
-        of page 2 so it doesn't matter which is in front.
-        canvas-cover-left  ← center third of page 2
-        canvas-cover-right ← center third of page 2
+    PIXEL_SCALE: 2× (normal) or 3× (HiDPI) for crisp rendering.
+    Strategy:
+      1. Render each full PDF page to an offscreen canvas at PIXEL_SCALE.
+      2. Use copySlice() to cut the appropriate horizontal slice into each
+         panel's canvas. Panel canvases are sized to the slice width.
   */
   const PIXEL_SCALE = Math.min(window.devicePixelRatio >= 2 ? 3 : 2, 3);
 
@@ -610,11 +639,9 @@
     const page = await pdf.getPage(pageNum);
     const vp0  = page.getViewport({ scale: 1 });
 
-    /* Render at full card width × PIXEL_SCALE */
-    const refCanvas = document.getElementById('canvas-inner-center');
-    const cssFullW  = (refCanvas.offsetWidth || 247) * 3;
-    const scale     = (cssFullW * PIXEL_SCALE) / vp0.width;
-    const vp        = page.getViewport({ scale });
+    const cssFullW = gatefold.offsetWidth || 740;
+    const scale    = (cssFullW * PIXEL_SCALE) / vp0.width;
+    const vp       = page.getViewport({ scale });
 
     const offscreen = document.createElement('canvas');
     offscreen.width  = Math.round(vp.width);
@@ -624,15 +651,15 @@
     return offscreen;
   }
 
-  function copyThird(src, dst, part) {
-    const sw = src.width;
+  /* Copy a horizontal fraction [x0..x1] of src into dst */
+  function copySlice(src, dst, x0, x1) {
     const sh = src.height;
-    const tw = Math.floor(sw / 3);
-    const sx = part === 'left' ? 0 : part === 'center' ? tw : 2 * tw;
+    const sx = Math.round(x0 * src.width);
+    const sw = Math.round((x1 - x0) * src.width);
 
-    dst.width  = tw;
+    dst.width  = sw;
     dst.height = sh;
-    dst.getContext('2d').drawImage(src, sx, 0, tw, sh, 0, 0, tw, sh);
+    dst.getContext('2d').drawImage(src, sx, 0, sw, sh, 0, 0, sw, sh);
   }
 
   async function loadPDF() {
@@ -640,34 +667,40 @@
       const pdf = await pdfjsLib.getDocument('./voucher_azul.pdf').promise;
 
       const [page1, page2] = await Promise.all([
-        renderFullPage(pdf, 1),   /* inner content (open state) */
-        renderFullPage(pdf, 2),   /* exterior cover (closed state) */
+        renderFullPage(pdf, 1),   /* inner content */
+        renderFullPage(pdf, 2),   /* exterior / cover */
       ]);
 
-      /* Inner content: page 1 in thirds */
-      copyThird(page1, document.getElementById('canvas-inner-left'),   'left');
-      copyThird(page1, document.getElementById('canvas-inner-center'), 'center');
-      copyThird(page1, document.getElementById('canvas-inner-right'),  'right');
+      /* Store page2 for dynamic cover swaps */
+      page2Offscreen = page2;
 
-      /* Cover: center third of page 2 (both flap back faces map here) */
-      copyThird(page2, document.getElementById('canvas-cover-left'),  'center');
-      copyThird(page2, document.getElementById('canvas-cover-right'), 'center');
+      /* ── Front faces: page 1 in 25/50/25 slices ── */
+      copySlice(page1, document.getElementById('canvas-inner-left'),   0,    0.25);
+      copySlice(page1, document.getElementById('canvas-inner-center'), 0.25, 0.75);
+      copySlice(page1, document.getElementById('canvas-inner-right'),  0.75, 1.0);
 
+      /* ── Center back face: page 2 center 50% (static) ── */
+      copySlice(page2, document.getElementById('canvas-center-back'),  0.25, 0.75);
+
+      /* ── Flap back faces: initial = closed side ── */
+      coverSide = 'closed';
+      updateCoverCanvases();
+
+      /* Mark all faces ready */
       ['face-inner-center','face-inner-left','face-inner-right',
-       'face-cover-left','face-cover-right']
+       'face-center-back','face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
 
     } catch (err) {
       console.warn('[fbr-voucher] PDF load failed:', err);
       ['face-inner-center','face-inner-left','face-inner-right',
-       'face-cover-left','face-cover-right']
+       'face-center-back','face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
     }
   }
 
   /* ── Init ────────────────────────────────────────────────────────── */
   function init() {
-    /* Start closed (fold = 0) */
     fold  = 0;
     tFold = 0;
 
@@ -679,17 +712,16 @@
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
 
-    /* After entrance: show UI + subtle fold tease */
+    /* After entrance settles: show UI + subtle fold peek */
     setTimeout(() => {
       if (interacted) return;
 
       hint.classList.add('show');
-      btnFlip.classList.add('show');
 
-      /* Slight fold peek then close back */
+      /* Slight peek then close — teases the click-to-open action */
       setTimeout(() => {
         if (interacted) return;
-        tFold = 0.12;
+        tFold = 0.14;
         startSpring();
         setTimeout(() => {
           if (interacted) return;
