@@ -270,7 +270,6 @@ body::before {
 .gatefold::after {
   content: '';
   position: absolute;
-  /* left of right wing = left-wing-right-edge = wing-w + wing-w = 2×wing-w */
   left: calc(var(--wing-w) * 2);
   top: 4px; bottom: 4px; width: 1px;
   background: linear-gradient(180deg,
@@ -279,7 +278,7 @@ body::before {
     rgba(0,0,0,.18) 88%,
     transparent);
   pointer-events: none;
-  transition: opacity .4s ease;
+  transition: opacity .15s ease;
   z-index: 10;
 }
 .gatefold.open::after { opacity: 0; }
@@ -407,6 +406,7 @@ body::before {
   background-position: 50% 50%;
   pointer-events: none;
   z-index: 1;
+  visibility: hidden;
 }
 
 /* Open-card shadow (replaces cover-shadow once open) */
@@ -808,11 +808,30 @@ function initCardInteraction() {
   let startX = 0, startY = 0;
   let ptrTime = 0;
 
+  const gInside  = document.getElementById('gatefoldInside');
+  const gBack    = document.getElementById('gatefoldBack');
+  /* Detect if backface-visibility is broken (Chrome Android flattens preserve-3d).
+     We test by checking if the browser is Android Chrome. */
+  const needsBVFix = /Android/i.test(navigator.userAgent);
+
   /* Smooth lerp — chases target but target never resets on its own */
   (function tick() {
     ry += (ty - ry) * .10;
     rx += (tx - rx) * .10;
     tilt.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg)`;
+
+    if (needsBVFix) {
+      /* Chrome Android ignores backface-visibility in nested preserve-3d.
+         Manually show/hide inside vs back panel based on card rotation. */
+      const normRy     = ((ry % 360) + 360) % 360;
+      const showBack   = normRy > 90 && normRy < 270;
+      gBack.style.visibility  = showBack ? '' : 'hidden';
+      /* only touch inside visibility when it's supposed to be visible (open state) */
+      if (gInside.classList.contains('visible')) {
+        gInside.style.visibility = showBack ? 'hidden' : '';
+      }
+    }
+
     requestAnimationFrame(tick);
   })();
 
@@ -854,14 +873,13 @@ function initCardInteraction() {
     const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
     const dx = cx - tprevX, dy = cy - tprevY;
     tprevX = cx; tprevY = cy;
-    if (Math.abs(cx - tx0) > 6 || Math.abs(cy - ty0) > 6) tmov = true;
+    if (Math.abs(cx - tx0) > 12 || Math.abs(cy - ty0) > 12) tmov = true;
     ty += dx * 0.55;
     tx -= dy * 0.38;
   }, { passive: true });
 
   wrapper.addEventListener('touchend', () => {
-    if (!tmov && Date.now() - ptrTime < 290) toggle();
-    /* card stays exactly where it is — no snap-back */
+    if (!tmov && Date.now() - ptrTime < 400) toggle();
   });
 
   /* ── Open / close gatefold ── */
@@ -872,12 +890,13 @@ function initCardInteraction() {
       ty = 0; tx = 0;   /* straighten before opening */
       gatefold.classList.add('open');
       setTimeout(() => {
-        document.getElementById('gatefoldInside').classList.add('visible');
+        gInside.classList.add('visible');
       }, 880);
       hint.textContent = 'clica novamente para fechar';
       hint.classList.add('visible');
     } else {
-      document.getElementById('gatefoldInside').classList.remove('visible');
+      gInside.classList.remove('visible');
+      gInside.style.visibility = '';
       setTimeout(() => { gatefold.classList.remove('open'); }, 380);
       hint.textContent = 'clica no cartão para o abrir';
     }
