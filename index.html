@@ -65,7 +65,7 @@
       font-size: clamp(14px, 1.3vw, 22px);
       letter-spacing: 0.5px;
       line-height: 1.1;
-      color: rgba(250,247,240,0.45);
+      color: rgba(250,247,240,0.75);
       white-space: nowrap;
       pointer-events: none;
     }
@@ -547,19 +547,14 @@
 
   /* ── Snap overall rotation ──────────────────────────────────────── */
   function snapGatefold() {
-    if (isOpen) {
-      /* Open: allow front (0°) and back (180°) */
-      const norm  = ((rotY % 360) + 360) % 360;
-      const front = norm < 90 || norm >= 270;
-      const base  = Math.round(rotY / 360) * 360;
-      let   snap  = front ? base : base + 180;
-      while (snap - rotY >  180) snap -= 360;
-      while (snap - rotY < -180) snap += 360;
-      tY = snap;
-    } else {
-      /* Closed: always face front */
-      tY = Math.round(rotY / 360) * 360;
-    }
+    /* Both open and closed: allow front (0°) and back (180°) */
+    const norm  = ((rotY % 360) + 360) % 360;
+    const front = norm < 90 || norm >= 270;
+    const base  = Math.round(rotY / 360) * 360;
+    let   snap  = front ? base : base + 180;
+    while (snap - rotY >  180) snap -= 360;
+    while (snap - rotY < -180) snap += 360;
+    tY = snap;
     tX = 0;
   }
 
@@ -584,7 +579,7 @@
     if (!dragging) return;
     const dx = x - lx, dy = y - ly;
     totalTravel += Math.abs(dx) + Math.abs(dy);
-    rotY += dx * 0.46;
+    rotY += dx * 0.75;
     rotX  = Math.max(-13, Math.min(13, rotX - dy * 0.22));
     lx = x; ly = y;
     apply();
