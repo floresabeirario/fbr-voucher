@@ -1,8 +1,6 @@
 const { google } = require('googleapis');
 
 const SPREADSHEET_ID = '1VuFbI98844n_IlYeYQ5LaO8zG1aOjmCapinmlEmgyZY';
-const SHEET_NAME = 'Voucher';
-
 module.exports = async function handler(req, res) {
   const { code } = req.query;
 
@@ -20,7 +18,7 @@ module.exports = async function handler(req, res) {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_NAME}!A:E`,
+      range: 'A:E',
     });
 
     const rows = response.data.values || [];
