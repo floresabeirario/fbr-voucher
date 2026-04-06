@@ -27,8 +27,9 @@
       /* Card dimensions: A4 landscape ratio 297/210 = 1.4142 */
       --w: min(740px, 92vw, calc(72vh * 1.4142));
       --h: calc(var(--w) / 1.4142);
-      --t: 6px;   /* card thickness (simulates 300g paper) */
-      --ht: 3px;  /* half thickness */
+      --hw: calc(var(--w) / 2);   /* half width — each panel */
+      --t: 2px;     /* card thickness */
+      --ht: 1px;    /* half thickness */
       --verde:     #3D6B5E;
       --creme:     #FAF7F0;
       --terracota: #C4846B;
@@ -76,7 +77,7 @@
       justify-content: center;
     }
 
-    /* Ground shadow — separate from preserve-3d to avoid flattening */
+    /* Ground shadow */
     .ground-shadow {
       position: absolute;
       bottom: -36px;
@@ -95,39 +96,93 @@
       perspective-origin: 50% 42%;
     }
 
-    /* ── Card ───────────────────────────────────────────────────── */
-    .card {
+    /* ── Gatefold container ─────────────────────────────────────── */
+    /*
+      The gatefold is the rotatable outer shell (drag to tilt/explore).
+      Inside it: two panels (left & right) that fold open/closed.
+    */
+    .gatefold {
       width: var(--w);
       height: var(--h);
       position: relative;
       transform-style: preserve-3d;
       cursor: grab;
       will-change: transform;
-      /* JS handles all transforms. Opacity via class. */
       opacity: 0;
       transition: opacity 0.7s ease;
     }
-    .card.loaded { opacity: 1; }
-    .card:active  { cursor: grabbing; }
+    .gatefold.loaded { opacity: 1; }
+    .gatefold:active  { cursor: grabbing; }
 
-    /* ── Faces ──────────────────────────────────────────────────── */
-    .card-face {
+    /* ── Panels ─────────────────────────────────────────────────── */
+    /*
+      Each panel is half the card width.
+      Left panel  hinges on its RIGHT edge  (transform-origin: right center).
+      Right panel hinges on its LEFT  edge  (transform-origin: left center).
+
+      Opening animation:
+        left  panel: rotateY(0°) → rotateY(-180°)
+        right panel: rotateY(0°) → rotateY(+180°)
+
+      When fully open (±180°) the panels swap sides:
+        left  panel (originally left  half) now occupies right half
+        right panel (originally right half) now occupies left  half
+      The inner face canvases are assigned accordingly (see JS).
+    */
+    .panel {
+      position: absolute;
+      top: 0;
+      width: var(--hw);
+      height: 100%;
+      transform-style: preserve-3d;
+    }
+
+    .panel-left {
+      left: 0;
+      transform-origin: right center;
+    }
+
+    .panel-right {
+      right: 0;
+      transform-origin: left center;
+    }
+
+    /* ── Panel faces ────────────────────────────────────────────── */
+    .panel-face {
       position: absolute;
       inset: 0;
-      border-radius: 2px;
       overflow: hidden;
+      border-radius: 2px;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
 
-    .card-face canvas {
+    .panel-face canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
+    /*
+      Outer face: faces viewer when panel is at rotateY(0°) — closed state.
+      translateZ(ht) places it at the front of the panel's z-space.
+    */
+    .panel-outer {
+      transform: translateZ(var(--ht));
+    }
+
+    /*
+      Inner face: faces away from viewer when panel is at rotateY(0°).
+      rotateY(180deg) turns it around; translateZ(ht) along the now-reversed
+      local Z puts it at z = -ht in panel space.
+      Becomes visible when the panel has rotated ±180° (open state).
+    */
+    .panel-inner {
+      transform: rotateY(180deg) translateZ(var(--ht));
+    }
+
     /* PDF loading placeholder — fades once canvas is ready */
-    .card-face::before {
+    .panel-face::before {
       content: '';
       position: absolute;
       inset: 0;
@@ -137,47 +192,47 @@
       pointer-events: none;
       border-radius: 2px;
     }
-    .card-face.ready::before { opacity: 0; }
+    .panel-face.ready::before { opacity: 0; }
 
-    /* Subtle gloss layer — makes it feel printed */
-    .card-face::after {
+    /* Gloss layer */
+    .panel-face::after {
       content: '';
       position: absolute;
       inset: 0;
+      pointer-events: none;
+      z-index: 3;
       background: linear-gradient(
         128deg,
         rgba(255,255,255,0.055) 0%,
         transparent 42%,
         rgba(0,0,0,0.03) 100%
       );
-      pointer-events: none;
-      z-index: 3;
     }
 
+    /* Fold-crease shadow on outer faces (only near the center fold) */
+    .panel-left  .panel-outer::after {
+      background:
+        linear-gradient(to right, transparent 80%, rgba(0,0,0,0.13) 100%),
+        linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
+    }
+    .panel-right .panel-outer::after {
+      background:
+        linear-gradient(to left, transparent 80%, rgba(0,0,0,0.13) 100%),
+        linear-gradient(128deg, rgba(255,255,255,0.055) 0%, transparent 42%, rgba(0,0,0,0.03) 100%);
+    }
+
+    /* ── Panel edges (paper thickness) ─────────────────────────── */
     /*
-      Face transforms.
-      Front face at z = +ht (facing viewer).
-      Back  face at z = -ht (facing away), rotated 180° on Y.
+      Edge geometry: same principle as original card edges.
+      transform: translateZ(ht) rotateX/Y(±90°)
+      Places each edge strip at the paper boundary.
 
-      For rotateY(180deg) translateZ(ht):
-        After rotateY(180deg), local-z points in -world-z direction,
-        so translateZ(ht) = −ht in world-z → back face sits at z = −ht. ✓
+      Outer edges: left edge of left panel, right edge of right panel.
+      Top/bottom edges: on both panels (half-width each).
+      Spine edges: right edge of left panel & left edge of right panel
+                   (the fold crease — slightly darker).
     */
-    .card-front { transform: translateZ(var(--ht)); }
-    .card-back  { transform: rotateY(180deg) translateZ(var(--ht)); }
-
-    /* ── Card edges (paper thickness) ──────────────────────────── */
-    /*
-      Edge geometry derivation (CSS transforms apply left-to-right):
-      transform: translateZ(ht) rotateX/Y(±90deg)
-
-      For each edge, transform-origin is at the card's boundary line.
-      translateZ(ht) moves that line to the front face (z=+ht).
-      The rotation then sweeps the strip from z=+ht to z=−ht.
-
-      Verified for each edge below.
-    */
-    .card-edge {
+    .panel-edge {
       position: absolute;
       background: linear-gradient(
         to right,
@@ -189,33 +244,56 @@
       );
     }
 
-    /* Top: origin at top center. rotateX(-90°) sweeps strip forward (z+→z−). */
-    .edge-top {
+    /* Top edge — both panels */
+    .p-edge-top {
       top: 0; left: 0;
       width: 100%; height: var(--t);
       transform-origin: top center;
       transform: translateZ(var(--ht)) rotateX(-90deg);
     }
-    /* Bottom: origin at bottom center. rotateX(+90°). */
-    .edge-bottom {
+    /* Bottom edge — both panels */
+    .p-edge-bottom {
       bottom: 0; left: 0;
       width: 100%; height: var(--t);
       transform-origin: bottom center;
       transform: translateZ(var(--ht)) rotateX(90deg);
     }
-    /* Left: origin at left center. rotateY(+90°). */
-    .edge-left {
+    /* Outer left edge — left panel only */
+    .p-edge-outer-left {
       top: 0; left: 0;
       width: var(--t); height: 100%;
       transform-origin: left center;
       transform: translateZ(var(--ht)) rotateY(90deg);
     }
-    /* Right: origin at right center. rotateY(-90°). */
-    .edge-right {
+    /* Outer right edge — right panel only */
+    .p-edge-outer-right {
       top: 0; right: 0;
       width: var(--t); height: 100%;
       transform-origin: right center;
       transform: translateZ(var(--ht)) rotateY(-90deg);
+    }
+    /* Spine / fold-crease edges — slightly darker to suggest the crease */
+    .p-edge-spine {
+      background: linear-gradient(
+        to right,
+        rgba(80,60,40,0.18) 0%,
+        rgba(40,28,18,0.35) 50%,
+        rgba(80,60,40,0.18) 100%
+      );
+    }
+    /* Spine right (right side of left panel) */
+    .p-edge-spine-r {
+      top: 0; right: 0;
+      width: var(--t); height: 100%;
+      transform-origin: right center;
+      transform: translateZ(var(--ht)) rotateY(-90deg);
+    }
+    /* Spine left (left side of right panel) */
+    .p-edge-spine-l {
+      top: 0; left: 0;
+      width: var(--t); height: 100%;
+      transform-origin: left center;
+      transform: translateZ(var(--ht)) rotateY(90deg);
     }
 
     /* ── Bottom UI ──────────────────────────────────────────────── */
@@ -270,7 +348,7 @@
     }
     .btn-flip:active { transform: scale(0.96); }
 
-    /* ── Loading spinner (shown while PDF loads, inside face) ───── */
+    /* ── Loading spinner ────────────────────────────────────────── */
     .spinner {
       position: absolute;
       inset: 0;
@@ -288,7 +366,7 @@
       border-radius: 50%;
       animation: spin 0.9s linear infinite;
     }
-    .card-face.ready .spinner { display: none; }
+    .panel-face.ready .spinner { display: none; }
 
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -300,22 +378,55 @@
 <div class="scene-wrap">
   <div class="ground-shadow" id="ground-shadow"></div>
   <div class="scene">
-    <div class="card" id="card">
+    <div class="gatefold" id="gatefold">
 
-      <div class="card-face card-front" id="face-front">
-        <canvas id="canvas-front"></canvas>
-        <div class="spinner"></div>
+      <!-- ── LEFT PANEL ─────────────────────────────────────────── -->
+      <div class="panel panel-left" id="panel-left">
+
+        <!-- Outer face: left half of page 1 (cover), visible when closed -->
+        <div class="panel-face panel-outer" id="face-outer-left">
+          <canvas id="canvas-outer-left"></canvas>
+          <div class="spinner"></div>
+        </div>
+
+        <!--
+          Inner face: RIGHT half of page 2 (content), visible when open.
+          Counter-intuitive but correct: when left panel opens (rotateY -180°)
+          it migrates to the RIGHT side of the screen, so its canvas must carry
+          the right half of the inner page.
+        -->
+        <div class="panel-face panel-inner" id="face-inner-left">
+          <canvas id="canvas-inner-left"></canvas>
+        </div>
+
+        <div class="panel-edge p-edge-top"></div>
+        <div class="panel-edge p-edge-bottom"></div>
+        <div class="panel-edge p-edge-outer-left"></div>
+        <div class="panel-edge p-edge-spine p-edge-spine-r"></div>
       </div>
 
-      <div class="card-face card-back" id="face-back">
-        <canvas id="canvas-back"></canvas>
-        <div class="spinner"></div>
-      </div>
+      <!-- ── RIGHT PANEL ────────────────────────────────────────── -->
+      <div class="panel panel-right" id="panel-right">
 
-      <div class="card-edge edge-top"></div>
-      <div class="card-edge edge-bottom"></div>
-      <div class="card-edge edge-left"></div>
-      <div class="card-edge edge-right"></div>
+        <!-- Outer face: right half of page 1 (cover) -->
+        <div class="panel-face panel-outer" id="face-outer-right">
+          <canvas id="canvas-outer-right"></canvas>
+        </div>
+
+        <!--
+          Inner face: LEFT half of page 2 (content).
+          Right panel opens (rotateY +180°) → migrates to LEFT side of screen
+          → canvas carries the left half of the inner page.
+        -->
+        <div class="panel-face panel-inner" id="face-inner-right">
+          <canvas id="canvas-inner-right"></canvas>
+        </div>
+
+        <div class="panel-edge p-edge-top"></div>
+        <div class="panel-edge p-edge-bottom"></div>
+        <div class="panel-edge p-edge-outer-right"></div>
+        <div class="panel-edge p-edge-spine p-edge-spine-l"></div>
+      </div>
 
     </div>
   </div>
@@ -329,8 +440,8 @@
     </svg>
     Arraste para explorar
   </div>
-  <button class="btn-flip" id="btn-flip" aria-label="Virar o cartão">
-    Virar o cartão
+  <button class="btn-flip" id="btn-flip" aria-label="Abrir o cartão">
+    Abrir
   </button>
 </div>
 
@@ -340,70 +451,78 @@
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   /* ── DOM refs ───────────────────────────────────────────────────── */
-  const card        = document.getElementById('card');
+  const gatefold    = document.getElementById('gatefold');
+  const panelLeft   = document.getElementById('panel-left');
+  const panelRight  = document.getElementById('panel-right');
   const hint        = document.getElementById('hint');
   const btnFlip     = document.getElementById('btn-flip');
   const groundShadow = document.getElementById('ground-shadow');
 
+  /* ── Spring constants ───────────────────────────────────────────── */
+  const STIFF      = 0.11,  DAMP      = 0.70;
+  const FOLD_STIFF = 0.085, FOLD_DAMP = 0.74;
+
   /* ── Spring state ───────────────────────────────────────────────── */
   /*
-    rotY  : current Y rotation (degrees) — drives the flip animation
-    rotX  : current X tilt (degrees, clamped ±13) — follows vertical drag
-    entryY: vertical offset (px) — used only for the entrance animation
-    Targets (tY, tX, tEY) are set by snapping logic and drag.
-    Velocities (vY, vX, vEY) are updated each tick by spring formula:
-      vel = vel * DAMP + (target − pos) * STIFF
+    rotY / rotX / entryY : overall gatefold rotation & entrance offset
+    fold                 : 0 = closed (outer faces), 1 = open (inner faces)
   */
-  const STIFF = 0.11, DAMP = 0.70;
-
   let rotY = -22, rotX = 0, entryY = 26;
   let tY = 0,    tX = 0,   tEY = 0;
   let vY = 0,    vX = 0,   vEY = 0;
+
+  let fold = 0, tFold = 0, vFold = 0;
+
   let raf = null;
 
   /* ── Interaction state ──────────────────────────────────────────── */
-  let dragging    = false;
-  let lx = 0,  ly = 0;
-  let interacted  = false;
-  let showingBack = false;
+  let dragging   = false;
+  let lx = 0,   ly = 0;
+  let interacted = false;
+  let foldOpen   = false;
 
-  /* ── Apply transform + update shadow ───────────────────────────── */
+  /* ── Apply all transforms ───────────────────────────────────────── */
   function apply() {
-    card.style.transform =
+    /* Overall gatefold rotation (drag-to-explore) */
+    gatefold.style.transform =
       `translateY(${entryY.toFixed(2)}px) ` +
       `rotateY(${rotY.toFixed(3)}deg) ` +
       `rotateX(${rotX.toFixed(3)}deg)`;
 
-    /*
-      Shadow: most opaque when card faces viewer (edge-on angle ≈ 90°),
-      lighter when card is edge-on to viewer.
-    */
-    const edgeOn = Math.abs(((rotY % 180) + 180) % 180 - 90); // 0 = edge-on, 90 = face-on
+    /* Panel fold: 0° = closed, ±180° = open */
+    panelLeft.style.transform  = `rotateY(${(-180 * fold).toFixed(3)}deg)`;
+    panelRight.style.transform = `rotateY(${( 180 * fold).toFixed(3)}deg)`;
+
+    /* Ground shadow intensity */
+    const edgeOn = Math.abs(((rotY % 180) + 180) % 180 - 90);
     groundShadow.style.opacity = 0.4 + (edgeOn / 90) * 0.55;
   }
 
   /* ── Spring tick ────────────────────────────────────────────────── */
   function tick() {
-    vY  = vY  * DAMP + (tY  - rotY)   * STIFF;
-    vX  = vX  * DAMP + (tX  - rotX)   * STIFF;
-    vEY = vEY * DAMP + (tEY - entryY) * STIFF;
+    vY    = vY    * DAMP      + (tY    - rotY)   * STIFF;
+    vX    = vX    * DAMP      + (tX    - rotX)   * STIFF;
+    vEY   = vEY   * DAMP      + (tEY   - entryY) * STIFF;
+    vFold = vFold * FOLD_DAMP + (tFold - fold)   * FOLD_STIFF;
 
     rotY   += vY;
     rotX   += vX;
     entryY += vEY;
+    fold   += vFold;
 
     apply();
 
     const settled =
-      Math.abs(tY  - rotY)   < 0.015 && Math.abs(vY)  < 0.015 &&
-      Math.abs(tX  - rotX)   < 0.015 && Math.abs(vX)  < 0.015 &&
-      Math.abs(tEY - entryY) < 0.015 && Math.abs(vEY) < 0.015;
+      Math.abs(tY    - rotY)   < 0.015 && Math.abs(vY)    < 0.015 &&
+      Math.abs(tX    - rotX)   < 0.015 && Math.abs(vX)    < 0.015 &&
+      Math.abs(tEY   - entryY) < 0.015 && Math.abs(vEY)   < 0.015 &&
+      Math.abs(tFold - fold)   < 0.001 && Math.abs(vFold) < 0.001;
 
     if (!settled) {
       raf = requestAnimationFrame(tick);
     } else {
-      rotY = tY; rotX = tX; entryY = tEY;
-      vY = vX = vEY = 0;
+      rotY = tY; rotX = tX; entryY = tEY; fold = tFold;
+      vY = vX = vEY = vFold = 0;
       apply();
       raf = null;
     }
@@ -413,20 +532,17 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
-  /* ── Snap to nearest face (0° = front, 180° = back) ────────────── */
-  function snapToNearest() {
-    const norm    = ((rotY % 360) + 360) % 360;
-    const front   = norm < 90 || norm >= 270;
-    const base    = Math.round(rotY / 360) * 360;
-    let   snap    = front ? base : base + 180;
-
-    /* shortest path */
-    while (snap - rotY >  180) snap -= 360;
-    while (snap - rotY < -180) snap += 360;
-
-    tY = snap;
+  /* ── Snap overall rotation back to front-facing ─────────────────── */
+  /*
+    The gatefold always snaps to 0° (front-facing) — we don't flip the
+    entire card; open/close is handled by the fold animation.
+    Light tilting (rotX, small rotY) is still allowed while dragging.
+  */
+  function snapGatefold() {
+    tY = Math.round(rotY / 360) * 360;
+    while (tY - rotY >  180) tY -= 360;
+    while (tY - rotY < -180) tY += 360;
     tX = 0;
-    showingBack = !front;
   }
 
   /* ── Drag ───────────────────────────────────────────────────────── */
@@ -449,7 +565,7 @@
   function onUp() {
     if (!dragging) return;
     dragging = false;
-    snapToNearest();
+    snapGatefold();
     startSpring();
     if (!interacted) {
       interacted = true;
@@ -458,7 +574,7 @@
   }
 
   /* Mouse */
-  card.addEventListener('mousedown', e => {
+  gatefold.addEventListener('mousedown', e => {
     e.preventDefault();
     onDown(e.clientX, e.clientY);
   });
@@ -466,7 +582,7 @@
   window.addEventListener('mouseup',   ()  => onUp());
 
   /* Touch */
-  card.addEventListener('touchstart', e => {
+  gatefold.addEventListener('touchstart', e => {
     e.preventDefault();
     onDown(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: false });
@@ -479,87 +595,124 @@
 
   window.addEventListener('touchend', () => onUp());
 
-  /* ── Flip button ─────────────────────────────────────────────────── */
+  /* ── Open / Close button ────────────────────────────────────────── */
   btnFlip.addEventListener('click', () => {
-    showingBack = !showingBack;
-    let snap = showingBack
-      ? Math.round(rotY / 360) * 360 + 180
-      : Math.round(rotY / 360) * 360;
-    while (snap - rotY >  180) snap -= 360;
-    while (snap - rotY < -180) snap += 360;
-    tY = snap; tX = 0;
+    foldOpen = !foldOpen;
+    tFold = foldOpen ? 1 : 0;
+
+    /* Snap gatefold to front before folding for a clean animation */
+    tY = Math.round(rotY / 360) * 360;
+    while (tY - rotY >  180) tY -= 360;
+    while (tY - rotY < -180) tY += 360;
+    tX = 0;
+
+    btnFlip.textContent = foldOpen ? 'Fechar' : 'Abrir';
+    btnFlip.setAttribute('aria-label', foldOpen ? 'Fechar o cartão' : 'Abrir o cartão');
+
     if (raf) { cancelAnimationFrame(raf); raf = null; }
-    vY = vX = 0;
+    vFold = 0;
     startSpring();
   });
 
   /* ── PDF Rendering ───────────────────────────────────────────────── */
   /*
     Render at 2× or 3× pixel density for retina crispness.
-    CSS sets canvas to 100%×100% of the face element, so the high-res
-    bitmap is downscaled smoothly by the browser.
+    Strategy:
+      1. Render full PDF page to an offscreen canvas at full card width.
+      2. Use drawImage to copy the appropriate half to each panel canvas.
+
+    Inner face canvas assignment (counter-intuitive but geometrically correct):
+      canvas-inner-left  ← right half of page 2
+        (left panel opens → moves to right side of screen)
+      canvas-inner-right ← left half of page 2
+        (right panel opens → moves to left side of screen)
   */
   const PIXEL_SCALE = Math.min(window.devicePixelRatio >= 2 ? 3 : 2, 3);
 
-  async function renderPage(pdf, pageNum, canvasId, faceId) {
-    const page   = await pdf.getPage(pageNum);
-    const canvas = document.getElementById(canvasId);
-    const face   = document.getElementById(faceId);
+  async function renderFullPage(pdf, pageNum) {
+    const page  = await pdf.getPage(pageNum);
+    const vp0   = page.getViewport({ scale: 1 });
 
-    const vp0    = page.getViewport({ scale: 1 });
-    const cssW   = canvas.offsetWidth  || 740;
-    const scale  = (cssW * PIXEL_SCALE) / vp0.width;
-    const vp     = page.getViewport({ scale });
+    /* Scale so the full page fills the card's CSS width at PIXEL_SCALE */
+    const refCanvas = document.getElementById('canvas-outer-left');
+    const cssFullW  = (refCanvas.offsetWidth  || 370) * 2;
+    const scale     = (cssFullW * PIXEL_SCALE) / vp0.width;
+    const vp        = page.getViewport({ scale });
 
-    canvas.width  = Math.round(vp.width);
-    canvas.height = Math.round(vp.height);
+    const offscreen = document.createElement('canvas');
+    offscreen.width  = Math.round(vp.width);
+    offscreen.height = Math.round(vp.height);
 
     await page.render({
-      canvasContext: canvas.getContext('2d'),
+      canvasContext: offscreen.getContext('2d'),
       viewport: vp,
     }).promise;
 
-    face.classList.add('ready');
+    return offscreen;
+  }
+
+  function copyHalf(src, dst, side) {
+    const sw = src.width;
+    const sh = src.height;
+    const hw = Math.floor(sw / 2);
+
+    dst.width  = hw;
+    dst.height = sh;
+
+    const ctx = dst.getContext('2d');
+    if (side === 'left') {
+      ctx.drawImage(src, 0,  0, hw, sh, 0, 0, hw, sh);
+    } else {
+      ctx.drawImage(src, hw, 0, hw, sh, 0, 0, hw, sh);
+    }
   }
 
   async function loadPDF() {
     try {
       const pdf = await pdfjsLib.getDocument('./voucher_azul.pdf').promise;
-      await Promise.all([
-        renderPage(pdf, 1, 'canvas-front', 'face-front'),
-        renderPage(pdf, 2, 'canvas-back',  'face-back'),
+
+      const [pageOuter, pageInner] = await Promise.all([
+        renderFullPage(pdf, 1),  /* outer / cover page */
+        renderFullPage(pdf, 2),  /* inner content page */
       ]);
+
+      /* Outer faces — straightforward halves */
+      copyHalf(pageOuter, document.getElementById('canvas-outer-left'),  'left');
+      copyHalf(pageOuter, document.getElementById('canvas-outer-right'), 'right');
+
+      /* Inner faces — SWAPPED (see comment above) */
+      copyHalf(pageInner, document.getElementById('canvas-inner-left'),  'right');
+      copyHalf(pageInner, document.getElementById('canvas-inner-right'), 'left');
+
+      /* Mark all faces ready (fades out the cream placeholder) */
+      ['face-outer-left', 'face-outer-right', 'face-inner-left', 'face-inner-right']
+        .forEach(id => document.getElementById(id).classList.add('ready'));
+
     } catch (err) {
       console.warn('[fbr-voucher] PDF load failed:', err);
-      /* Graceful fallback: show warm cream faces */
-      ['face-front', 'face-back'].forEach(id =>
-        document.getElementById(id).classList.add('ready')
-      );
+      ['face-outer-left', 'face-outer-right', 'face-inner-left', 'face-inner-right']
+        .forEach(id => document.getElementById(id).classList.add('ready'));
     }
   }
 
   /* ── Init ────────────────────────────────────────────────────────── */
   function init() {
-    /* Apply initial tilted state before fade-in */
     apply();
 
-    /* Start loading PDF (async, non-blocking) */
     loadPDF();
 
-    /* Fade card in */
-    requestAnimationFrame(() => card.classList.add('loaded'));
+    requestAnimationFrame(() => gatefold.classList.add('loaded'));
 
-    /* Run entrance spring: from (rotY=−22, entryY=26) → (0, 0) */
+    /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
 
-    /* After entrance settles, show hint and run a wobble tease */
     setTimeout(() => {
       if (interacted) return;
 
       hint.classList.add('show');
       btnFlip.classList.add('show');
 
-      /* Wobble: lean right, return to center */
+      /* Wobble tease */
       setTimeout(() => {
         if (interacted) return;
         tY = 16;
