@@ -667,8 +667,13 @@
     const sx = Math.round(x0 * src.width);
     const sw = Math.round((x1 - x0) * src.width);
 
-    dst.width  = sw;
-    dst.height = sh;
+    /* Only reset dimensions when they actually change — assigning canvas.width
+       always clears the canvas, even when the value is identical, which can
+       cause a blank frame on some browsers (GPU texture invalidation). */
+    if (dst.width !== sw || dst.height !== sh) {
+      dst.width  = sw;
+      dst.height = sh;
+    }
     dst.getContext('2d').drawImage(src, sx, 0, sw, sh, 0, 0, sw, sh);
   }
 
@@ -707,6 +712,14 @@
        'face-center-back','face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
     }
+
+    /* Reveal the gatefold only after canvases are filled — prevents flicker
+       between the loading placeholder and the cover image.
+       Double-rAF ensures the browser has painted at least one frame with
+       the correct 3D transforms before the opacity transition begins. */
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      gatefold.classList.add('loaded');
+    }));
   }
 
   /* ── Init ────────────────────────────────────────────────────────── */
@@ -715,9 +728,7 @@
     tFold = 0;
 
     apply();
-    loadPDF();
-
-    requestAnimationFrame(() => gatefold.classList.add('loaded'));
+    loadPDF(); /* reveals gatefold once canvases are ready */
 
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
