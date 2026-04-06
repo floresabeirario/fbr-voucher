@@ -25,7 +25,7 @@
 
     :root {
       /* Full card: A4 landscape — 297/210 ≈ 1.4142 */
-      --w:  min(740px, 92vw, calc(72vh * 1.4142));
+      --w:  min(900px, 92vw, calc(72vh * 1.4142));
       --h:  calc(var(--w) / 1.4142);
       --pw: calc(var(--w) / 4);         /* flap width  = 25% */
       --cw: calc(var(--w) / 2);         /* center width = 50% */
@@ -395,7 +395,7 @@
         overflow-x: auto;
       }
       body.voucher-open .hero-section {
-        overflow-x: visible;
+        overflow-x: auto;
       }
     }
 
@@ -975,16 +975,48 @@
   window.addEventListener('mousemove',   e => onMove(e.clientX, e.clientY));
   window.addEventListener('mouseup',     ()  => onUp());
 
-  /* Touch */
+  /* Touch
+     Direction-aware: decide on first ~5px of movement whether the gesture
+     is vertical (→ browser scroll) or horizontal (→ card drag/rotate).
+     When the card is already open, horizontal also goes to the browser
+     so the user can scroll to see the full open card.
+  */
+  let touchDir = null; // null = undecided | 'v' = scroll | 'h' = drag
+
   gatefold.addEventListener('touchstart', e => {
-    e.preventDefault();
+    touchDir = null;
     onDown(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: false });
+    // No e.preventDefault() here — let browser track the gesture too
+  }, { passive: true });
+
   window.addEventListener('touchmove', e => {
     if (!dragging) return;
-    e.preventDefault();
-    onMove(e.touches[0].clientX, e.touches[0].clientY);
+
+    const tx = e.touches[0].clientX;
+    const ty = e.touches[0].clientY;
+
+    // Determine gesture direction on first significant movement
+    if (touchDir === null) {
+      const adx = Math.abs(tx - downX);
+      const ady = Math.abs(ty - downY);
+      if (adx > 4 || ady > 4) {
+        touchDir = ady > adx ? 'v' : 'h';
+      }
+    }
+
+    // Vertical swipe → release and let browser scroll the page
+    if (touchDir === 'v') { dragging = false; return; }
+
+    // Horizontal swipe when open → let browser scroll to see full card
+    if (touchDir === 'h' && isOpen) { dragging = false; return; }
+
+    // Horizontal swipe when closed → rotate card
+    if (touchDir === 'h') {
+      e.preventDefault();
+      onMove(tx, ty);
+    }
   }, { passive: false });
+
   window.addEventListener('touchend', () => onUp());
 
   /* ── Scroll: hide fixed UI when user leaves hero ────────────────── */
