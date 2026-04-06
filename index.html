@@ -377,25 +377,23 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Mobile: voucher fills screen when closed, scrollable when open ── */
+    /* ── Mobile: voucher fills screen when closed, scales to fit when open ── */
     @media (max-width: 600px) {
       :root {
-        /* Center panel = 50% of --w; we want it ≈ 90vw when closed.
-           So --w ≈ 180vw. Also cap by height so it never taller than viewport. */
+        /* Center panel = 50% of --w; target ≈ 90vw when closed → --w ≈ 180vw. */
         --w: min(calc(90vw * 2), calc(72vh * 1.4142));
       }
 
-      /* Clip the folded flaps (off-screen) when closed */
-      .hero-section {
-        overflow-x: hidden;
-      }
+      /* Clip folded flaps that sit off-screen */
+      body { overflow-x: hidden; }
 
-      /* When open, reveal full card with horizontal scroll */
-      body.voucher-open {
-        overflow-x: auto;
+      /* When open: scale the whole scene down so the full card fits the viewport.
+         --w ≈ 180vw × scale(0.5) → visible card ≈ 90vw. */
+      .scene {
+        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      body.voucher-open .hero-section {
-        overflow-x: auto;
+      body.voucher-open .scene {
+        transform: scale(0.5);
       }
     }
 
@@ -984,7 +982,7 @@
      Direction-aware: decide on first ~5px of movement whether the gesture
      is vertical (→ browser scroll) or horizontal (→ card drag/rotate).
      When the card is already open, horizontal also goes to the browser
-     so the user can scroll to see the full open card.
+     vertical swipe → page scroll; horizontal swipe → rotate card.
   */
   let touchDir = null; // null = undecided | 'v' = scroll | 'h' = drag
 
@@ -992,7 +990,6 @@
     lastTouchTime = Date.now();
     touchDir = null;
     onDown(e.touches[0].clientX, e.touches[0].clientY);
-    // No e.preventDefault() here — let browser track the gesture too
   }, { passive: true });
 
   window.addEventListener('touchmove', e => {
@@ -1010,13 +1007,10 @@
       }
     }
 
-    // Vertical swipe → release and let browser scroll the page
+    // Vertical swipe → let browser scroll the page
     if (touchDir === 'v') { dragging = false; return; }
 
-    // Horizontal swipe when open → let browser scroll to see full card
-    if (touchDir === 'h' && isOpen) { dragging = false; return; }
-
-    // Horizontal swipe when closed → rotate card
+    // Horizontal swipe → rotate card (works open and closed)
     if (touchDir === 'h') {
       e.preventDefault();
       onMove(tx, ty);
