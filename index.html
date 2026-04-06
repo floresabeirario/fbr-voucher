@@ -68,11 +68,12 @@
       top: clamp(16px, 3vh, 30px);
       left: 50%;
       transform: translateX(-50%);
+      z-index: 100;
       font-family: 'TAN Memories', Georgia, serif;
       font-size: clamp(14px, 1.3vw, 22px);
       letter-spacing: 0.5px;
       line-height: 1.1;
-      color: rgba(250,247,240,0.75);
+      color: rgba(250,247,240,0.85);
       white-space: nowrap;
       pointer-events: none;
     }
@@ -401,7 +402,7 @@
       color: var(--creme); line-height: 1.15; margin-bottom: 16px; letter-spacing: 0.02em;
     }
     .nc-subtitle {
-      font-size: clamp(13px,1.4vw,16px); color: rgba(250,247,240,0.44);
+      font-size: clamp(13px,1.4vw,16px); color: rgba(250,247,240,0.65);
       max-width: 480px; line-height: 1.7; margin-bottom: clamp(48px,6vw,72px);
     }
     .steps-grid {
@@ -433,8 +434,8 @@
     }
     .step-card.featured .step-num { color: rgba(184,149,74,0.14); }
     .step-content { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .step-content h3 { font-size: clamp(14px,1.5vw,17px); font-weight: 500; color: rgba(250,247,240,0.88); letter-spacing: 0.01em; }
-    .step-content p  { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.40); line-height: 1.7; flex: 1; }
+    .step-content h3 { font-size: clamp(14px,1.5vw,17px); font-weight: 500; color: rgba(250,247,240,0.92); letter-spacing: 0.01em; }
+    .step-content p  { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.62); line-height: 1.7; flex: 1; }
     .step-link {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
@@ -458,8 +459,8 @@
       background: rgba(184,149,74,0.035);
       border-radius: 0 4px 4px 0;
     }
-    .code-callout p      { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.42); line-height: 1.7; }
-    .code-callout strong { color: rgba(250,247,240,0.72); font-weight: 500; }
+    .code-callout p      { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.62); line-height: 1.7; }
+    .code-callout strong { color: rgba(250,247,240,0.88); font-weight: 500; }
 
     /* ═══════════════════════════════════════════════════════════════
        FOOTER
@@ -493,7 +494,7 @@
     }
     .footer-nav ul, .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .footer-nav a, .footer-contact a {
-      font-size: clamp(12px,1.1vw,13px); color: rgba(250,247,240,0.40);
+      font-size: clamp(12px,1.1vw,13px); color: rgba(250,247,240,0.58);
       text-decoration: none; letter-spacing: 0.02em; transition: color 0.22s ease;
     }
     .footer-nav a:hover, .footer-contact a:hover { color: rgba(250,247,240,0.75); }
