@@ -293,9 +293,17 @@
       pointer-events: none;
       overflow: visible;
       transform: translateZ(calc(var(--ht) + 0.1px));
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
+    .voucher-open .handwritten-center { opacity: 1; }
     /* "de 300€" — centered on the value underline */
-    .hw-valor { left: 50%; top: 83%; transform: translateX(-50%); }
+    .hw-valor {
+      left: 50%;
+      top: 83%;
+      transform: translateX(-50%);
+      font-size: calc(var(--h) * 0.048);
+    }
 
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
