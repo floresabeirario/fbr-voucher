@@ -39,3 +39,4 @@ Abrir `index.html` directamente no browser (sem servidor necessário).
 - Variáveis CSS em `:root` para todos os valores de cor e geometria — nunca usar valores hardcoded no CSS sem razão.
 - Não adicionar frameworks ou dependências externas sem pedido explícito do cliente.
 - Preservar a identidade visual da marca: elegância minimalista, tons naturais, sem elementos visuais que pareçam genéricos ou digitais demais.
+- **Mobile é obrigatório**: tudo o que é implementado para desktop deve também funcionar em mobile, de forma adaptada — touch events, tamanhos adequados ao ecrã, layout responsivo.
