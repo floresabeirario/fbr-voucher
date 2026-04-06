@@ -1305,5 +1305,30 @@
 
   init();
 </script>
+
+<script>
+  (async function () {
+    const code = window.location.pathname.replace(/^\//, '').split('/')[0];
+    if (!code) return;
+
+    try {
+      const res = await fetch('/api/voucher?code=' + encodeURIComponent(code));
+      if (!res.ok) return;
+      const data = await res.json();
+
+      const elDe     = document.querySelector('.hw-de');
+      const elPara   = document.querySelector('.hw-para');
+      const elValor  = document.querySelector('.hw-valor');
+      const elCodigo = document.querySelector('.hw-codigo');
+
+      if (elDe)     elDe.textContent     = data.remetente;
+      if (elPara)   elPara.textContent   = data.destinatario;
+      if (elValor)  elValor.textContent  = 'de ' + data.valor;
+      if (elCodigo) elCodigo.textContent = data.codigo;
+    } catch (err) {
+      console.warn('[fbr-voucher] Failed to load voucher data:', err);
+    }
+  })();
+</script>
 </body>
 </html>
