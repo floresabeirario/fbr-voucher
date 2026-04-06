@@ -250,15 +250,12 @@
       z-index: 3;
     }
 
-    /* ── Handwritten names overlay (sits on cover back face) ── */
+    /* ── Handwritten names overlay (lives inside face-center-back) ── */
     .handwritten-cover {
       position: absolute;
       inset: 0;
-      /* Same face orientation as .panel-center .face-back, but 2px further forward */
-      transform: rotateY(180deg) translateZ(calc(var(--ht) + 4px));
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
       pointer-events: none;
+      z-index: 4;               /* above canvas (0), placeholder (2) and gloss (3) */
     }
     .hw-name {
       position: absolute;
