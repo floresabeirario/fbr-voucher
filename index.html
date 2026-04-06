@@ -880,7 +880,7 @@
     rotY   += vY;
     rotX   += vX;
     entryY += vEY;
-    fold   += vFold;
+    fold   = Math.max(0, Math.min(1, fold + vFold));
 
     /* Swap cover canvases at the edge-on point (fold = 0.5) */
     const newSide = fold > 0.5 ? 'open' : 'closed';
