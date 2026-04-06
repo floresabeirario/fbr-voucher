@@ -286,6 +286,17 @@
     /* "para: ___" line — right of the "para:" label */
     .hw-para { left: 46%; top: 90%; }
 
+    /* ── Value overlay on center panel front face ───────────────────── */
+    .handwritten-center {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+      transform: translateZ(calc(var(--ht) + 0.1px));
+    }
+    /* "de 300€" — centered on the value underline */
+    .hw-valor { left: 50%; top: 83%; transform: translateX(-50%); }
+
     /* Fold-crease shadow at the hinge edges of the inner faces */
     .flap-left  .face-front::after {
       background:
@@ -617,6 +628,10 @@
         </div>
         <div class="panel-face face-back" id="face-center-back">
           <canvas id="canvas-center-back"></canvas>
+        </div>
+        <!-- Value amount overlay on inner (open) face -->
+        <div class="handwritten-center" aria-hidden="true">
+          <span class="hw-name hw-valor">de 300€</span>
         </div>
         <div class="panel-edge p-edge-top"></div>
         <div class="panel-edge p-edge-bottom"></div>
