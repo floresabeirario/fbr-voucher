@@ -41,7 +41,7 @@
     html { width: 100%; min-height: 100%; }
     body {
       width: 100%;
-      background: #080c0a;
+      background: #FAF7F0;
       font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       user-select: none;
@@ -56,10 +56,10 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      background: #080c0a;
+      background: #FAF7F0;
       background-image:
-        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(61,107,94,0.14) 0%, transparent 100%),
-        radial-gradient(ellipse 50% 40% at 75% 75%, rgba(184,149,74,0.05) 0%, transparent 100%);
+        radial-gradient(ellipse 90% 70% at 50% 30%, rgba(61,107,94,0.08) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 40% at 75% 75%, rgba(184,149,74,0.06) 0%, transparent 100%);
     }
 
     /* ── Brand ──────────────────────────────────────────────────── */
@@ -73,7 +73,7 @@
       font-size: clamp(14px, 1.3vw, 22px);
       letter-spacing: 0.5px;
       line-height: 1.1;
-      color: rgba(250,247,240,0.85);
+      color: rgba(20,18,12,0.82);
       white-space: nowrap;
       pointer-events: none;
     }
@@ -347,7 +347,7 @@
       font-size: 10px;
       letter-spacing: 0.13em;
       text-transform: uppercase;
-      color: rgba(250,247,240,0.32);
+      color: rgba(20,18,12,0.4);
       white-space: nowrap;
       opacity: 0;
       transition: opacity 0.55s ease;
@@ -368,7 +368,7 @@
       font-size: 9px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: rgba(250,247,240,0.22);
+      color: rgba(20,18,12,0.35);
     }
     .scroll-cue svg {
       opacity: 0.3;
@@ -418,7 +418,7 @@
        NEXT CHAPTER — "O que fazer agora?"
     ═══════════════════════════════════════════════════════════════ */
     .next-chapter {
-      background: #080c0a;
+      background: #FAF7F0;
       padding: clamp(72px,10vw,120px) clamp(24px,6vw,80px) clamp(80px,10vw,128px);
       position: relative;
       overflow: hidden;
@@ -436,10 +436,10 @@
     .nc-title {
       font-family: 'TAN Memories', Georgia, serif;
       font-size: clamp(28px,4.5vw,52px); font-weight: 400;
-      color: var(--creme); line-height: 1.15; margin-bottom: 16px; letter-spacing: 0.02em;
+      color: #14120c; line-height: 1.15; margin-bottom: 16px; letter-spacing: 0.02em;
     }
     .nc-subtitle {
-      font-size: clamp(13px,1.4vw,16px); color: rgba(250,247,240,0.65);
+      font-size: clamp(13px,1.4vw,16px); color: rgba(20,18,12,0.62);
       max-width: 480px; line-height: 1.7; margin-bottom: clamp(48px,6vw,72px);
     }
     .steps-grid {
@@ -448,8 +448,8 @@
       gap: 24px;
     }
     .step-card {
-      background: rgba(250,247,240,0.028);
-      border: 1px solid rgba(250,247,240,0.06);
+      background: rgba(20,18,12,0.035);
+      border: 1px solid rgba(20,18,12,0.09);
       border-radius: 4px;
       padding: clamp(28px,3.5vw,40px) clamp(24px,3vw,36px);
       display: flex; flex-direction: column; gap: 20px;
@@ -461,25 +461,25 @@
       background: radial-gradient(ellipse 80% 60% at 20% 0%, rgba(61,107,94,0.06) 0%, transparent 70%);
       pointer-events: none;
     }
-    .step-card:hover { border-color: rgba(184,149,74,0.2); background: rgba(250,247,240,0.04); }
+    .step-card:hover { border-color: rgba(184,149,74,0.35); background: rgba(20,18,12,0.05); }
     .step-card.featured { border-color: rgba(184,149,74,0.22); background: rgba(184,149,74,0.045); }
     .step-card.featured::before { background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184,149,74,0.08) 0%, transparent 70%); }
     .step-num {
       font-family: 'TAN Memories', Georgia, serif;
       font-size: clamp(36px,4.5vw,52px); line-height: 1;
-      color: rgba(250,247,240,0.07); letter-spacing: -0.02em; user-select: none;
+      color: rgba(20,18,12,0.08); letter-spacing: -0.02em; user-select: none;
     }
-    .step-card.featured .step-num { color: rgba(184,149,74,0.14); }
+    .step-card.featured .step-num { color: rgba(184,149,74,0.2); }
     .step-content { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .step-content h3 { font-size: clamp(14px,1.5vw,17px); font-weight: 500; color: rgba(250,247,240,0.92); letter-spacing: 0.01em; }
-    .step-content p  { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.62); line-height: 1.7; flex: 1; }
+    .step-content h3 { font-size: clamp(14px,1.5vw,17px); font-weight: 500; color: rgba(20,18,12,0.88); letter-spacing: 0.01em; }
+    .step-content p  { font-size: clamp(12px,1.2vw,14px); color: rgba(20,18,12,0.62); line-height: 1.7; flex: 1; }
     .step-link {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: rgba(250,247,240,0.38); text-decoration: none; margin-top: 8px;
+      color: rgba(20,18,12,0.42); text-decoration: none; margin-top: 8px;
       transition: color 0.25s ease, gap 0.25s ease;
     }
-    .step-link:hover { color: rgba(250,247,240,0.72); gap: 10px; }
+    .step-link:hover { color: rgba(20,18,12,0.72); gap: 10px; }
     .step-cta {
       display: inline-flex; align-items: center; gap: 10px;
       font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
@@ -496,15 +496,15 @@
       background: rgba(184,149,74,0.035);
       border-radius: 0 4px 4px 0;
     }
-    .code-callout p      { font-size: clamp(12px,1.2vw,14px); color: rgba(250,247,240,0.62); line-height: 1.7; }
-    .code-callout strong { color: rgba(250,247,240,0.88); font-weight: 500; }
+    .code-callout p      { font-size: clamp(12px,1.2vw,14px); color: rgba(20,18,12,0.62); line-height: 1.7; }
+    .code-callout strong { color: rgba(20,18,12,0.88); font-weight: 500; }
 
     /* ═══════════════════════════════════════════════════════════════
        FOOTER
     ═══════════════════════════════════════════════════════════════ */
     .site-footer {
-      background: #060908;
-      border-top: 1px solid rgba(250,247,240,0.05);
+      background: #EDE8DC;
+      border-top: 1px solid rgba(20,18,12,0.1);
       padding: clamp(48px,7vw,80px) clamp(24px,6vw,80px) 0;
     }
     .footer-inner {
@@ -515,9 +515,9 @@
     .footer-logo {
       display: block; font-family: 'TAN Memories', Georgia, serif;
       font-size: clamp(14px,1.5vw,18px); letter-spacing: 0.12em;
-      color: rgba(250,247,240,0.75); margin-bottom: 12px;
+      color: rgba(20,18,12,0.78); margin-bottom: 12px;
     }
-    .footer-tagline { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(250,247,240,0.22); line-height: 1.8; }
+    .footer-tagline { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(20,18,12,0.38); line-height: 1.8; }
     .footer-website-link {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -527,36 +527,36 @@
     .footer-website-link:hover { color: rgba(184,149,74,1); gap: 10px; }
     .footer-nav h4, .footer-contact h4 {
       font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;
-      color: rgba(250,247,240,0.22); margin-bottom: 18px;
+      color: rgba(20,18,12,0.38); margin-bottom: 18px;
     }
     .footer-nav ul, .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .footer-nav a, .footer-contact a {
-      font-size: clamp(12px,1.1vw,13px); color: rgba(250,247,240,0.58);
+      font-size: clamp(12px,1.1vw,13px); color: rgba(20,18,12,0.6);
       text-decoration: none; letter-spacing: 0.02em; transition: color 0.22s ease;
     }
-    .footer-nav a:hover, .footer-contact a:hover { color: rgba(250,247,240,0.75); }
+    .footer-nav a:hover, .footer-contact a:hover { color: rgba(20,18,12,0.85); }
     .contact-item { display: flex; align-items: center; gap: 10px; }
     .contact-item svg { flex-shrink: 0; opacity: 0.35; }
     .footer-social { display: flex; gap: 12px; margin-top: 20px; }
     .social-link {
       display: flex; align-items: center; justify-content: center;
       width: 34px; height: 34px;
-      border: 1px solid rgba(250,247,240,0.1); border-radius: 50%;
-      color: rgba(250,247,240,0.35); text-decoration: none;
+      border: 1px solid rgba(20,18,12,0.15); border-radius: 50%;
+      color: rgba(20,18,12,0.4); text-decoration: none;
       transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
     }
     .social-link:hover { border-color: rgba(184,149,74,0.45); color: rgba(184,149,74,0.9); background: rgba(184,149,74,0.07); }
     .footer-bottom {
       max-width: 960px; margin: 0 auto;
       padding: 20px 0 24px;
-      border-top: 1px solid rgba(250,247,240,0.05);
+      border-top: 1px solid rgba(20,18,12,0.1);
       display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
     }
     .footer-bottom p, .footer-bottom a {
-      font-size: 10px; letter-spacing: 0.12em; color: rgba(250,247,240,0.18);
+      font-size: 10px; letter-spacing: 0.12em; color: rgba(20,18,12,0.28);
       text-decoration: none; transition: color 0.22s ease;
     }
-    .footer-bottom a:hover { color: rgba(250,247,240,0.5); }
+    .footer-bottom a:hover { color: rgba(20,18,12,0.6); }
     @media (max-width: 700px) {
       .footer-inner { grid-template-columns: 1fr 1fr; }
       .footer-brand { grid-column: 1 / -1; }
