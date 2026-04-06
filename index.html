@@ -8,7 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
@@ -1150,6 +1150,22 @@
 
       /* Store page2 for dynamic cover swaps */
       page2Offscreen = page2;
+
+      /* ── Handwritten names on cover ── */
+      await document.fonts.load('1em "Homemade Apple"');
+      {
+        const ctx2 = page2.getContext('2d');
+        const W    = page2.width;
+        const H    = page2.height;
+        const fs   = Math.round(W * 0.022);          /* ~2.2% of full width */
+        ctx2.save();
+        ctx2.font         = `${fs}px "Homemade Apple"`;
+        ctx2.fillStyle    = '#7ab0c4';               /* matches the blue of "de:" / "para:" */
+        ctx2.textBaseline = 'alphabetic';
+        ctx2.fillText('Joana',                  Math.round(W * 0.190), Math.round(H * 0.840));
+        ctx2.fillText('Guilherme e Alexandra',  Math.round(W * 0.200), Math.round(H * 0.893));
+        ctx2.restore();
+      }
 
       /* ── Front faces: page 1 in 25/50/25 slices ── */
       copySlice(page1, document.getElementById('canvas-inner-left'),   0,    0.25);
