@@ -466,7 +466,7 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      border: 2px solid rgba(61,107,94,0.55);
+      border: 2px solid rgba(255,255,255,0.7);
       animation: tap-ring 2s ease-out infinite;
     }
     .tap-cue-ring::after { animation-delay: 0.7s; }
@@ -489,7 +489,7 @@
       font-size: 10px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(61,107,94,0.75);
+      color: rgba(255,255,255,0.85);
       white-space: nowrap;
     }
 
@@ -1701,7 +1701,9 @@
   /* ── Scroll: hide fixed UI when user leaves hero ────────────────── */
   window.addEventListener('scroll', () => {
     const heroH = document.querySelector('.hero-section').offsetHeight;
-    bottomUi.classList.toggle('hidden', window.scrollY > heroH * 0.55);
+    const summary = document.getElementById('voucher-summary');
+    const summaryTop = summary ? summary.getBoundingClientRect().top + window.scrollY : heroH;
+    bottomUi.classList.toggle('hidden', window.scrollY > Math.min(heroH * 0.55, summaryTop - 80));
   }, { passive: true });
 
   /* ── PDF rendering ───────────────────────────────────────────────── */
