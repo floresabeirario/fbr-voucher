@@ -234,6 +234,34 @@
       transform: rotateY(180deg) translateZ(calc(var(--ht) + 2px));
     }
 
+    /* ── Card loading overlay ───────────────────────────────────────── */
+    .card-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+    .card-loading.hidden { opacity: 0; }
+    .card-loading-text {
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(13px, 1.2vw, 18px);
+      color: rgba(61,107,94,0.75);
+      letter-spacing: 0.5px;
+    }
+    .card-loading-pct {
+      font-family: 'Google Sans', system-ui, sans-serif;
+      font-size: clamp(11px, 1vw, 15px);
+      color: rgba(61,107,94,0.5);
+      letter-spacing: 1px;
+    }
+
     /* PDF loading placeholder */
     .panel-face::before {
       content: '';
@@ -829,6 +857,10 @@
 
 <section class="hero-section">
 <div class="scene-wrap">
+  <div class="card-loading" id="card-loading">
+    <span class="card-loading-text">Vale Presente a carregar</span>
+    <span class="card-loading-pct" id="card-loading-pct">0%</span>
+  </div>
   <div class="ground-shadow" id="ground-shadow"></div>
   <div class="scene">
     <div class="gatefold" id="gatefold">
@@ -1046,6 +1078,8 @@
 
   /* ── DOM refs ───────────────────────────────────────────────────── */
   const gatefold     = document.getElementById('gatefold');
+  const cardLoading  = document.getElementById('card-loading');
+  const cardLoadPct  = document.getElementById('card-loading-pct');
   const flapLeft     = document.getElementById('flap-left');
   const flapRight    = document.getElementById('flap-right');
   const hint         = document.getElementById('hint');
@@ -1415,13 +1449,23 @@
     dst.getContext('2d').drawImage(src, sx, 0, sw, sh, 0, 0, sw, sh);
   }
 
+  function setLoadPct(pct) {
+    cardLoadPct.textContent = Math.round(pct) + '%';
+  }
+
   async function loadPDF() {
+    setLoadPct(0);
     try {
-      const pdf = await pdfjsLib.getDocument('./voucher_azul.pdf').promise;
+      const loadTask = pdfjsLib.getDocument('./voucher_azul.pdf');
+      loadTask.onProgress = function(data) {
+        if (data.total) setLoadPct(Math.min(60, (data.loaded / data.total) * 60));
+      };
+      const pdf = await loadTask.promise;
+      setLoadPct(65);
 
       const [page1, page2] = await Promise.all([
-        renderFullPage(pdf, 1),   /* inner content */
-        renderFullPage(pdf, 2),   /* exterior / cover */
+        renderFullPage(pdf, 1).then(r => { setLoadPct(80); return r; }),  /* inner content */
+        renderFullPage(pdf, 2).then(r => { setLoadPct(90); return r; }),  /* exterior / cover */
       ]);
 
       /* Store page2 for dynamic cover swaps */
@@ -1439,6 +1483,8 @@
       coverSide = 'closed';
       updateCoverCanvases();
 
+      setLoadPct(100);
+
       /* Mark all faces ready */
       ['face-inner-center','face-inner-left','face-inner-right',
        'face-center-back','face-cover-left','face-cover-right']
@@ -1446,6 +1492,7 @@
 
     } catch (err) {
       console.warn('[fbr-voucher] PDF load failed:', err);
+      setLoadPct(100);
       ['face-inner-center','face-inner-left','face-inner-right',
        'face-center-back','face-cover-left','face-cover-right']
         .forEach(id => document.getElementById(id).classList.add('ready'));
@@ -1457,6 +1504,7 @@
        the correct 3D transforms before the opacity transition begins. */
     requestAnimationFrame(() => requestAnimationFrame(() => {
       gatefold.classList.add('loaded');
+      cardLoading.classList.add('hidden');
     }));
   }
 
