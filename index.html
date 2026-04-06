@@ -968,10 +968,17 @@
   const isMobile    = () => window.matchMedia('(max-width:600px)').matches;
   const SCALE_OPEN  = 0.5;
   const SCALE_CLOSE = 1.0;
-  let   zoomScale   = SCALE_OPEN;  // current zoom when open
+  let   zoomScale   = SCALE_OPEN;
+  let   pinchCompX  = 0;  // compensating translate so zoom targets the pinch midpoint
+  let   pinchCompY  = 0;
 
   function applySceneScale(scale, animate) {
     if (!isMobile()) { scene.style.transform = ''; scene.style.transition = ''; return; }
+    // Reset transform-origin and compensation before animating open/close
+    scene.style.transition     = 'none';
+    scene.style.transformOrigin = '50% 50%';
+    pinchCompX = pinchCompY = 0;
+    void scene.offsetWidth; // force reflow so transition kicks in after origin reset
     scene.style.transition = animate ? 'transform 0.55s cubic-bezier(0.4,0,0.2,1)' : 'none';
     scene.style.transform  = isOpen ? `scale(${scale})` : '';
   }
@@ -989,9 +996,12 @@
   /* ── Touch ──────────────────────────────────────────────────────────
      • 1-finger vertical   → page scroll
      • 1-finger horizontal → rotate card
-     • 2-finger pinch (only when open on mobile) → zoom 0.5 ↔ 1.0
+     • 2-finger pinch      → zoom 0.5 ↔ 1.0 centred on pinch midpoint
+       (captured at window level so it works on the side panels too —
+        gatefold layout overflows the viewport and overflow:hidden would
+        clip touch targets if we listened only on gatefold)
   */
-  let touchDir       = null;  // null | 'v' | 'h'
+  let touchDir       = null;
   let pinching       = false;
   let pinchStartDist = 0;
   let pinchStartZoom = SCALE_OPEN;
@@ -1002,30 +1012,47 @@
     return Math.sqrt(dx * dx + dy * dy);
   }
 
+  // Single-finger: tap to open/close, drag to rotate
   gatefold.addEventListener('touchstart', e => {
     lastTouchTime = Date.now();
-
-    if (e.touches.length === 2 && isOpen && isMobile()) {
-      // Start pinch — cancel any single-finger drag
-      pinching       = true;
-      dragging       = false;
-      pinchStartDist = pinchDist(e.touches);
-      pinchStartZoom = zoomScale;
-      return;
-    }
-
+    if (e.touches.length !== 1) return;
     touchDir = null;
     onDown(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
 
+  // 2-finger pinch at window level — works anywhere on screen (side panels included)
+  window.addEventListener('touchstart', e => {
+    if (e.touches.length !== 2 || !isOpen || !isMobile()) return;
+    pinching       = true;
+    dragging       = false;
+    pinchStartDist = pinchDist(e.touches);
+    pinchStartZoom = zoomScale;
+
+    // Move transform-origin to pinch midpoint so zoom feels anchored there.
+    // Compensate with a translate to avoid a visual jump on origin change.
+    const rect    = scene.getBoundingClientRect();
+    const cx      = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const cy      = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    const natW    = rect.width  / zoomScale;
+    const natH    = rect.height / zoomScale;
+    const ox2     = Math.max(0, Math.min(natW, (cx - rect.left) / zoomScale));
+    const oy2     = Math.max(0, Math.min(natH, (cy - rect.top)  / zoomScale));
+    const ox1     = natW * 0.5;
+    const oy1     = natH * 0.5;
+    pinchCompX    = (ox1 - ox2) * (1 - zoomScale);
+    pinchCompY    = (oy1 - oy2) * (1 - zoomScale);
+    scene.style.transition      = 'none';
+    scene.style.transformOrigin = `${ox2}px ${oy2}px`;
+    scene.style.transform       = `translate(${pinchCompX}px,${pinchCompY}px) scale(${zoomScale})`;
+  }, { passive: true });
+
   window.addEventListener('touchmove', e => {
-    // Pinch zoom (2 fingers, open card, mobile)
     if (pinching && e.touches.length === 2) {
       e.preventDefault();
       const ratio = pinchDist(e.touches) / pinchStartDist;
       zoomScale = Math.min(SCALE_CLOSE, Math.max(SCALE_OPEN, pinchStartZoom * ratio));
       scene.style.transition = 'none';
-      scene.style.transform  = `scale(${zoomScale})`;
+      scene.style.transform  = `translate(${pinchCompX}px,${pinchCompY}px) scale(${zoomScale})`;
       return;
     }
 
@@ -1034,14 +1061,13 @@
     const tx = e.touches[0].clientX;
     const ty = e.touches[0].clientY;
 
-    // Determine gesture direction on first significant movement
     if (touchDir === null) {
       const adx = Math.abs(tx - downX);
       const ady = Math.abs(ty - downY);
       if (adx > 4 || ady > 4) touchDir = ady > adx ? 'v' : 'h';
     }
 
-    if (touchDir === 'v') { dragging = false; return; }  // vertical → scroll page
+    if (touchDir === 'v') { dragging = false; return; }
 
     if (touchDir === 'h') {
       e.preventDefault();
@@ -1051,14 +1077,14 @@
 
   window.addEventListener('touchend', e => {
     if (pinching) {
-      // Keep pinching until both fingers are gone; snap to nearest stop
       if (e.touches.length < 2) {
         pinching = false;
         const snapped = zoomScale > (SCALE_OPEN + SCALE_CLOSE) / 2 ? SCALE_CLOSE : SCALE_OPEN;
         zoomScale = snapped;
-        applySceneScale(snapped, true);
+        scene.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+        scene.style.transform  = `translate(${pinchCompX}px,${pinchCompY}px) scale(${snapped})`;
       }
-      return;  // don't trigger onUp during/after a pinch
+      return;
     }
     onUp();
   });
