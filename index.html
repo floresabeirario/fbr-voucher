@@ -1538,16 +1538,6 @@
     hint.classList.add('show');
     tapCue.classList.add('show');
     setTimeout(() => { if (!interacted) scrollCue.classList.add('show'); }, 2000);
-    setTimeout(() => {
-      if (interacted) return;
-      tFold = 0.30;
-      startSpring();
-      setTimeout(() => {
-        if (interacted) return;
-        tFold = 0;
-        startSpring();
-      }, 900);
-    }, 300);
   }
 
   /* ── Dynamic canvas tracking ────────────────────────────────────── */
