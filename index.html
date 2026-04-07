@@ -1786,9 +1786,10 @@
     if (pinching) {
       if (e.touches.length < 2) {
         pinching = false;
-        const snapped = zoomScale > (SCALE_OPEN + SCALE_CLOSE) / 2 ? SCALE_CLOSE : SCALE_OPEN;
-        zoomScale = snapped;
-        scene.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+        zoomScale = zoomScale > (SCALE_OPEN + SCALE_CLOSE) / 2 ? SCALE_CLOSE : SCALE_OPEN;
+        panX = 0; pinchCompX = 0; pinchCompY = 0;
+        scene.style.transformOrigin = '50% 50%';
+        scene.style.transition = 'transform 0.35s cubic-bezier(0.4,0,0.2,1)';
         scene.style.transform  = sceneTransformStr();
       }
       return;
