@@ -1002,59 +1002,6 @@
     }
     .terms-section strong { color: rgba(20,18,12,0.55); font-weight: 500; }
 
-
-    /* ── Rotate bar (visible when voucher is open) ──────────────────── */
-    .rotate-bar {
-      display: none;
-      position: fixed;
-      bottom: clamp(18px, 3.5vh, 32px);
-      left: 50%;
-      transform: translateX(-50%);
-      align-items: center;
-      gap: 14px;
-      background: rgba(250,247,240,0.92);
-      border: 1px solid rgba(184,149,74,0.22);
-      border-radius: 40px;
-      padding: 7px 14px;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 20;
-      pointer-events: auto;
-      box-shadow: 0 2px 14px rgba(0,0,0,0.09);
-      white-space: nowrap;
-    }
-    .voucher-open .rotate-bar { display: flex; }
-
-    .rotate-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
-      border: none;
-      background: transparent;
-      color: rgba(20,18,12,0.5);
-      cursor: pointer;
-      border-radius: 50%;
-      transition: background 0.18s ease, color 0.18s ease;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .rotate-btn:hover  { background: rgba(61,107,94,0.1);  color: var(--verde); }
-    .rotate-btn:active { background: rgba(61,107,94,0.18); color: var(--verde); }
-
-    .rotate-label {
-      font-size: 9px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(20,18,12,0.32);
-      user-select: none;
-      -webkit-user-select: none;
-      pointer-events: none;
-    }
-
     @keyframes fbr-fade-up {
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -1082,22 +1029,6 @@
   </div>
 </div>
 
-<!-- Rotate bar (shown when voucher is open) -->
-<div class="rotate-bar" id="rotate-bar">
-  <button class="rotate-btn" id="rotate-btn-left" aria-label="Rodar para a esquerda">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-      <path d="M3 3v5h5"/>
-    </svg>
-  </button>
-  <span class="rotate-label">Girar</span>
-  <button class="rotate-btn" id="rotate-btn-right" aria-label="Rodar para a direita">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-      <path d="M21 3v5h-5"/>
-    </svg>
-  </button>
-</div>
 
 <!-- Search / Landing page (shown when no code in URL) -->
 <section class="search-page" id="search-page" aria-label="Pesquisar vale presente">
@@ -1799,38 +1730,6 @@
 
   window.addEventListener('touchcancel', () => { pinching = false; dragging = false; });
 
-  /* ── Rotate bar buttons ─────────────────────────────────────────── */
-  const rotateBtnLeft  = document.getElementById('rotate-btn-left');
-  const rotateBtnRight = document.getElementById('rotate-btn-right');
-  let rotateRaf = null;
-  let rotateDir = 0;
-  const ROTATE_SPEED = 2.8; // degrees per frame
-
-  function rotateStep() {
-    tY += rotateDir * ROTATE_SPEED;
-    if (!raf) startSpring();
-    rotateRaf = requestAnimationFrame(rotateStep);
-  }
-
-  function startRotating(dir) {
-    if (rotateRaf) return;
-    rotateDir = dir;
-    rotateRaf = requestAnimationFrame(rotateStep);
-  }
-
-  function stopRotating() {
-    if (rotateRaf) { cancelAnimationFrame(rotateRaf); rotateRaf = null; }
-    snapGatefold();
-    startSpring();
-  }
-
-  [rotateBtnLeft, rotateBtnRight].forEach(btn => {
-    const dir = btn === rotateBtnLeft ? -1 : 1;
-    btn.addEventListener('pointerdown',   e => { e.preventDefault(); startRotating(dir); });
-    btn.addEventListener('pointerup',     stopRotating);
-    btn.addEventListener('pointerleave',  stopRotating);
-    btn.addEventListener('pointercancel', stopRotating);
-  });
 
   /* ── Scroll: hide fixed UI when user leaves hero or summary is visible ── */
   function checkBottomUiVisibility() {
@@ -1987,7 +1886,6 @@
       document.querySelector('.site-footer').style.display   = 'none';
       document.querySelector('.bottom-ui').style.display     = 'none';
       document.getElementById('message-section').style.display = 'none';
-      document.getElementById('rotate-bar').style.display   = 'none';
       document.querySelector('.brand').style.position       = 'absolute';
 
       const form  = document.getElementById('search-form');
