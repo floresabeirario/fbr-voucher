@@ -52,10 +52,7 @@
       -webkit-font-smoothing: antialiased;
       user-select: none;
       -webkit-user-select: none;
-      overflow-x: auto;
-      overflow-y: auto;
-    }
-    body.voucher-open {
+      overflow-x: hidden;
       overflow-y: auto;
     }
 
@@ -612,7 +609,7 @@
       margin-bottom: 3px;
     }
     .vs-value {
-      font-size: 13px;
+      font-size: 14px;
       color: #14120c;
       font-weight: 400;
       white-space: nowrap;
@@ -620,9 +617,9 @@
       text-overflow: ellipsis;
     }
     .vs-value.vs-code {
-      font-family: 'Roboto Mono', ui-monospace, monospace;
+      font-family: ui-monospace, monospace;
       letter-spacing: 0.1em;
-      font-size: 12px;
+      font-size: 13px;
       color: var(--verde);
       font-weight: 500;
     }
@@ -701,7 +698,7 @@
       font-size: clamp(13px,1.3vw,15px); color: rgba(20,18,12,0.70); line-height: 1.75;
     }
     .nc-step-alert {
-      font-size: clamp(12px,1.1vw,13px); color: rgba(20,18,12,0.78);
+      font-size: clamp(13px,1.1vw,14px); color: rgba(20,18,12,0.78);
       background: rgba(184,149,74,0.07); border-left: 2px solid rgba(184,149,74,0.45);
       padding: 10px 14px; border-radius: 0 3px 3px 0; line-height: 1.65;
       margin-bottom: 14px;
@@ -741,7 +738,7 @@
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .nc-callout-body { display: flex; flex-direction: column; gap: 10px; }
-    .nc-callout-body p { font-size: clamp(12px,1.2vw,14px); color: rgba(20,18,12,0.72); line-height: 1.7; }
+    .nc-callout-body p { font-size: clamp(13px,1.2vw,14px); color: rgba(20,18,12,0.72); line-height: 1.7; }
     .nc-callout-body strong { color: rgba(20,18,12,0.82); font-weight: 500; }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -776,7 +773,7 @@
     }
     .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .footer-contact a {
-      font-size: clamp(12px,1.1vw,13px); color: rgba(20,18,12,0.70);
+      font-size: clamp(13px,1.1vw,14px); color: rgba(20,18,12,0.70);
       text-decoration: none; letter-spacing: 0.02em; transition: color 0.22s ease;
     }
     .footer-contact a:hover { color: rgba(20,18,12,0.85); }
@@ -929,7 +926,7 @@
     .search-btn:active { transform: scale(0.985); }
 
     .search-error {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--terracota);
       letter-spacing: 0.04em;
       opacity: 0;
@@ -954,16 +951,6 @@
     .search-note strong {
       color: rgba(20,18,12,0.72);
       font-weight: 500;
-    }
-
-    /* decorative botanical line */
-    .search-deco {
-      position: absolute;
-      bottom: clamp(28px, 4vw, 48px);
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0.12;
-      pointer-events: none;
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -1217,7 +1204,7 @@
          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
     </svg>
-    Clique para abrir · arraste para explorar
+    <span id="hint-text">Clique para abrir · arraste para explorar</span>
   </div>
   <div class="scroll-cue" id="scroll-cue">
     <span>Deslize para saber mais</span>
@@ -1440,7 +1427,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(184,149,74,0.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </div>
       <div class="nc-callout-body">
-        <p>Ao preencher o formulário, não se esqueça de inserir o código impresso no seu vale presente. É através dele que confirmamos e activamos a sua reserva.</p>
+        <p>Ao preencher o formulário, não se esqueça de inserir o código impresso no seu vale presente. É através dele que confirmamos e ativamos a sua reserva.</p>
         <p>Se o custo dos quadros ou elementos extra que escolher for superior ao valor do vale, apenas pagará a diferença. Visite a nossa <a href="https://www.floresabeirario.pt/opcoes-e-precos" target="_blank" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">página de opções e preços</a> para conhecer a nossa oferta.</p>
       </div>
     </div>
@@ -1635,30 +1622,17 @@
   }
 
   /* ── Cover canvas swap ──────────────────────────────────────────── */
+  /*
+    Slice mapping is identical whether closed or open+flipped:
+      Left flap back  → page2 [75–100%]
+      Right flap back → page2 [0–25%]
+    Center back face always shows page2 [25–75%] (static, extra Z).
+  */
   function updateCoverCanvases() {
     if (!page2Offscreen) return;
     updateCornerRadius();
-    if (coverSide === 'closed') {
-      /*
-        Closed view: flaps fold over center.
-        Left flap back face  → appears at screen x∈[25%,50%] → page2 [75–100%] (right lateral)
-        Right flap back face → appears at screen x∈[50%,75%] → page2 [0–25%]   (left lateral)
-        The flap fold mirrors left↔right, so laterals must be swapped relative
-        to their page2 position to read correctly on screen.
-        Center back face shows page2 [25–75%] on the back (fixed by extra Z). ✓
-      */
-      copySlice(page2Offscreen, cvCoverL, 0.75, 1.00);
-      copySlice(page2Offscreen, cvCoverR, 0.00, 0.25);
-    } else {
-      /*
-        Open + flipped view (gatefold rotated 180° to see exterior):
-        Left flap back face  → appears at screen x∈[75%,100%] → page2 [75–100%]
-        Right flap back face → appears at screen x∈[0%,25%]   → page2 [0–25%]
-        Combined with center-back (always page2 [25–75%]) → full page2 visible.
-      */
-      copySlice(page2Offscreen, cvCoverL, 0.75, 1.00);
-      copySlice(page2Offscreen, cvCoverR, 0.00, 0.25);
-    }
+    copySlice(page2Offscreen, cvCoverL, 0.75, 1.00);
+    copySlice(page2Offscreen, cvCoverR, 0.00, 0.25);
   }
 
   /* ── Snap overall rotation ──────────────────────────────────────── */
@@ -2021,6 +1995,11 @@
   function init() {
     fold  = 0;
     tFold = 0;
+
+    if (isMobile()) {
+      const hintText = document.getElementById('hint-text');
+      if (hintText) hintText.textContent = 'Toque para abrir · arraste para explorar';
+    }
 
     apply();
     updateCornerRadius(); /* set correct corners for initial closed state */
