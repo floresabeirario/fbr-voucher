@@ -19,7 +19,9 @@
       "WebFetch(domain:www.floresabeirario.pt)",
       "Bash(python3 -c ':*)",
       "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\maria\\\\Documents\\\\fbr-voucher\\\\fbr-voucher\\\\index.html' | Measure-Object -Line\")",
-      "Bash(powershell -Command \"\\(Get-Content index.html -Raw\\) -replace 'overflow: hidden;\\\\r\\\\n      /\\\\* Match face-back transform', 'overflow: visible;\\\\r\\\\n      /* Match face-back transform' | Set-Content index.html -NoNewline\")"
+      "Bash(powershell -Command \"\\(Get-Content index.html -Raw\\) -replace 'overflow: hidden;\\\\r\\\\n      /\\\\* Match face-back transform', 'overflow: visible;\\\\r\\\\n      /* Match face-back transform' | Set-Content index.html -NoNewline\")",
+      "Bash(curl -s \"https://api.cdnjs.com/libraries/pdf.js/3.11.174?fields=sri\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); files=d.get\\('sri',{}\\); [print\\(k,v\\) for k,v in files.items\\(\\) if 'pdf.min.js' in k and 'worker' not in k]\")"
     ]
   }
 }
