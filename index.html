@@ -1275,10 +1275,10 @@
 <section class="next-chapter">
   <div class="nc-inner">
     <div class="nc-eyebrow">
-      <p class="nc-label">Para os noivos</p>
+      <p class="nc-label">Próximos passos</p>
     </div>
     <h2 class="nc-title">Como utilizar<br>o seu vale</h2>
-    <p class="nc-subtitle">Este vale foi pensado para transformar flores com significado num quadro que perdura no tempo.</p>
+    <p class="nc-subtitle">Este vale dá-lhe acesso a um serviço de preservação floral artesanal. Use-o para guardar as flores de um momento especial, seja um casamento, batizado, aniversário, ou qualquer outra ocasião.</p>
 
     <div class="nc-steps">
 
@@ -1286,7 +1286,7 @@
         <div class="nc-step-num">01</div>
         <div class="nc-step-body">
           <h3>Visite o nosso site</h3>
-          <p>Descubra como funciona o processo de preservação floral e conheça todas as opções disponíveis para preservar as flores do seu dia especial.</p>
+          <p>Descubra como funciona o processo de preservação floral e conheça todas as opções disponíveis para guardar as flores do momento que quer recordar para sempre.</p>
         </div>
         <div class="nc-step-action">
           <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="nc-link">
@@ -1320,7 +1320,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(184,149,74,0.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       </div>
       <div class="nc-callout-body">
-        <p><strong>Lembrete:</strong> ao preencher o formulário, não se esqueça de inserir o código impresso no vosso vale presente. É através dele que confirmamos e activamos a vossa reserva.</p>
+        <p><strong>Lembrete:</strong> ao preencher o formulário, não se esqueça de inserir o código impresso no seu vale presente. É através dele que confirmamos e activamos a sua reserva.</p>
         <p><strong>Nota:</strong> Caso o custo dos quadros/elementos extra que escolheu seja superior ao valor do vale que recebeu, o valor do vale será descontado e só terá que pagar a diferença.</p>
       </div>
     </div>
@@ -1428,6 +1428,25 @@
   let lx = 0,   ly = 0;
   let interacted = false;
   let isOpen     = false;
+  let pdfLoaded  = false;
+  let entranceDone = false;
+
+  function maybeShowTapCue() {
+    if (!pdfLoaded || !entranceDone || interacted) return;
+    hint.classList.add('show');
+    tapCue.classList.add('show');
+    setTimeout(() => { if (!interacted) scrollCue.classList.add('show'); }, 2000);
+    setTimeout(() => {
+      if (interacted) return;
+      tFold = 0.30;
+      startSpring();
+      setTimeout(() => {
+        if (interacted) return;
+        tFold = 0;
+        startSpring();
+      }, 900);
+    }, 300);
+  }
 
   /* ── Dynamic canvas tracking ────────────────────────────────────── */
   /*
@@ -1924,6 +1943,8 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       gatefold.classList.add('loaded');
       cardLoading.classList.add('hidden');
+      pdfLoaded = true;
+      maybeShowTapCue();
     }));
   }
 
@@ -1939,26 +1960,10 @@
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
 
-    /* After entrance settles: show UI + subtle fold peek */
+    /* After entrance settles: show UI + subtle fold peek (only if PDF already loaded) */
     setTimeout(() => {
-      if (interacted) return;
-
-      hint.classList.add('show');
-      tapCue.classList.add('show');
-      setTimeout(() => { if (!interacted) scrollCue.classList.add('show'); }, 2000);
-
-      /* Peek then close — clearly teases the click-to-open action */
-      setTimeout(() => {
-        if (interacted) return;
-        tFold = 0.30;
-        startSpring();
-        setTimeout(() => {
-          if (interacted) return;
-          tFold = 0;
-          startSpring();
-        }, 900);
-      }, 300);
-
+      entranceDone = true;
+      maybeShowTapCue();
     }, 1400);
   }
 
