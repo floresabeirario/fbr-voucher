@@ -6,7 +6,11 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Vale presente digital Flores à Beira-Rio — Preservação floral artesanal em Portugal.">
   <meta name="theme-color" content="#3D6B5E">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%233D6B5E'/><circle cx='50' cy='50' r='20' fill='%23FAF7F0'/></svg>">
+  <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
   <title>Vale Presente · Flores à Beira-Rio</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1006,9 +1010,176 @@
       from { opacity: 0; transform: translateY(12px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       ENVELOPE INTRO OVERLAY
+    ═══════════════════════════════════════════════════════════════ */
+    #env-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #FAF7F0;
+      cursor: pointer;
+      overflow: hidden;
+      touch-action: manipulation;
+      /* exit: applied via JS */
+    }
+    #env-overlay.env-exit {
+      transform: translateY(-105%);
+      transition: transform 0.85s cubic-bezier(0.76, 0, 0.24, 1);
+      pointer-events: none;
+    }
+
+    /* Static decorative flaps */
+    .env-flap {
+      position: absolute;
+      inset: 0;
+    }
+    .env-flap-bottom {
+      background: #EDE8DC;
+      clip-path: polygon(0 100%, 100% 100%, 50% 50%);
+    }
+    .env-flap-left {
+      background: #E9E4D9;
+      clip-path: polygon(0 0, 50% 50%, 0 100%);
+    }
+    .env-flap-right {
+      background: #E9E4D9;
+      clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+    }
+
+    /* Top flap (animated) — perspective wrapper */
+    #env-flap-outer {
+      position: absolute;
+      inset: 0;
+      perspective: 1200px;
+      perspective-origin: 50% 50%;
+    }
+    #env-flap-top {
+      position: absolute;
+      inset: 0;
+      background: #E3DED3;
+      clip-path: polygon(0 0, 100% 0, 50% 50%);
+      transform-origin: top center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: transform 0.72s cubic-bezier(0.62, 0.01, 0.22, 1);
+      will-change: transform;
+    }
+    /* Subtle inner-shadow crease at the fold line */
+    #env-flap-top::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 70%,
+        rgba(0,0,0,0.06) 100%
+      );
+      clip-path: inherit;
+      pointer-events: none;
+    }
+    #env-flap-outer.open #env-flap-top {
+      transform: rotateX(-178deg);
+    }
+
+    /* Center content (seal + text) */
+    .env-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(12px, 2.2vh, 22px);
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .env-seal {
+      width: clamp(70px, 11vmin, 100px);
+      height: clamp(70px, 11vmin, 100px);
+      border-radius: 50%;
+      background: #3D6B5E;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 5px rgba(61,107,94,0.13),
+        0 0 0 10px rgba(61,107,94,0.055),
+        0 12px 38px rgba(61,107,94,0.26);
+      position: relative;
+    }
+    .env-seal::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      border: 0.75px dashed rgba(255,255,255,0.22);
+    }
+
+    .env-brand {
+      font-family: 'TAN Memories', Georgia, serif;
+      font-size: clamp(18px, 3.2vw, 32px);
+      color: rgba(20,18,12,0.66);
+      letter-spacing: 0.03em;
+      line-height: 1;
+    }
+    .env-sub {
+      font-size: clamp(10px, 0.95vw, 11px);
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: rgba(184,149,74,0.7);
+      line-height: 1;
+    }
+    .env-prompt {
+      font-size: clamp(9px, 0.85vw, 10px);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(20,18,12,0.36);
+      animation: env-pulse 2.8s ease-in-out infinite;
+    }
+    @keyframes env-pulse {
+      0%, 100% { opacity: 0.45; }
+      50%       { opacity: 1; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Envelope intro overlay — only shown on voucher pages (JS hides on search) -->
+<div id="env-overlay" aria-hidden="true">
+  <!-- Static decorative flaps (bottom, left, right) -->
+  <div class="env-flap env-flap-bottom"></div>
+  <div class="env-flap env-flap-left"></div>
+  <div class="env-flap env-flap-right"></div>
+  <!-- Animated top flap -->
+  <div id="env-flap-outer">
+    <div id="env-flap-top" class="env-flap"></div>
+  </div>
+  <!-- Center: wax seal + text -->
+  <div class="env-center">
+    <div class="env-seal" aria-hidden="true">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- stem -->
+        <line x1="20" y1="10" x2="20" y2="32" stroke="rgba(255,255,255,0.35)" stroke-width="0.8"/>
+        <!-- leaves -->
+        <path d="M20 11 Q15 16 20 19 Q25 16 20 11Z" fill="rgba(255,255,255,0.58)"/>
+        <path d="M20 20 Q16 24.5 20 27 Q24 24.5 20 20Z" fill="rgba(255,255,255,0.42)"/>
+        <!-- small side leaves -->
+        <path d="M20 15 Q14 14 13 17" stroke="rgba(255,255,255,0.3)" stroke-width="0.7" fill="none"/>
+        <path d="M20 15 Q26 14 27 17" stroke="rgba(255,255,255,0.3)" stroke-width="0.7" fill="none"/>
+      </svg>
+    </div>
+    <p class="env-brand">Vale Presente</p>
+    <p class="env-sub">Flores à Beira-Rio</p>
+    <p class="env-prompt">Toque para revelar</p>
+  </div>
+</div>
 
 <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="brand">Flores à Beira-Rio</a>
 
@@ -1961,6 +2132,44 @@
       }
     })();
   })();
+</script>
+
+<script>
+/* ── Envelope intro ────────────────────────────────────────────── */
+(function () {
+  var overlay   = document.getElementById('env-overlay');
+  var flapOuter = document.getElementById('env-flap-outer');
+  if (!overlay || !flapOuter) return;
+
+  /* Only show on voucher pages (code in path) */
+  var code = window.location.pathname.replace(/^\//, '').split('/')[0].trim();
+  if (!code) { overlay.style.display = 'none'; return; }
+
+  var opened = false;
+  function openEnvelope() {
+    if (opened) return;
+    opened = true;
+
+    /* Phase 1: top flap folds back */
+    flapOuter.classList.add('open');
+
+    /* Phase 2: whole overlay slides up (starts while flap is mid-fold) */
+    setTimeout(function () {
+      overlay.classList.add('env-exit');
+    }, 340);
+
+    /* Remove from DOM once animation is done */
+    setTimeout(function () {
+      overlay.remove();
+    }, 1350);
+  }
+
+  overlay.addEventListener('click', openEnvelope);
+  overlay.addEventListener('touchend', function (e) {
+    e.preventDefault();
+    openEnvelope();
+  }, { passive: false });
+})();
 </script>
 </body>
 </html>
