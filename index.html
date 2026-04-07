@@ -210,12 +210,12 @@
                   face-local x=0 → world outer-left  → round DOM LEFT  corners
                 flap-right at rotateY(+180°) around left  edge:
                   face-local x=W → world outer-right → round DOM RIGHT corners */
-    .flap-left  .face-front { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
-    .flap-right .face-front { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
+    .flap-left  .face-front { border-radius: 0; clip-path: inset(0px); }
+    .flap-right .face-front { border-radius: 0; clip-path: inset(0px); }
     /* Back faces: initial=CLOSED state. When closed, flap-left rotates -180deg so local-right
        edge becomes the outer-left corner → round the RIGHT corners. JS swaps these when open. */
-    .flap-left  .face-back  { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
-    .flap-right .face-back  { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
+    .flap-left  .face-back  { border-radius: 0; clip-path: inset(0px); }
+    .flap-right .face-back  { border-radius: 0; clip-path: inset(0px); }
 
     .panel-face canvas {
       display: block;
@@ -470,7 +470,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      border-radius: 50%;
+      border-radius: 0;
       border: 2px solid rgba(255,255,255,0.7);
       animation: tap-ring 2s ease-out infinite;
     }
@@ -537,7 +537,7 @@
       width: 28px; height: 28px;
       border: 2px solid rgba(61,107,94,0.18);
       border-top-color: rgba(61,107,94,0.5);
-      border-radius: 50%;
+      border-radius: 0;
       animation: spin 0.9s linear infinite;
     }
     .panel-face.ready .spinner { display: none; }
@@ -574,7 +574,7 @@
       flex-wrap: nowrap;
       gap: 0;
       border: 1px solid rgba(184,149,74,0.28);
-      border-radius: 14px;
+      border-radius: 0;
       overflow: hidden;
       background: #fff;
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
@@ -688,7 +688,7 @@
     .nc-step-alert {
       font-size: clamp(12px,1.1vw,13px); color: rgba(20,18,12,0.78);
       background: rgba(184,149,74,0.07); border-left: 2px solid rgba(184,149,74,0.45);
-      padding: 10px 14px; border-radius: 0 3px 3px 0; line-height: 1.65;
+      padding: 10px 14px; border-radius: 0; line-height: 1.65;
       margin-bottom: 14px;
     }
     .nc-step-alert strong { color: var(--ouro); font-weight: 500; }
@@ -705,7 +705,7 @@
       font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
       color: var(--ouro); text-decoration: none;
       border: 1px solid rgba(184,149,74,0.35);
-      padding: 13px 22px; border-radius: 2px; width: fit-content;
+      padding: 13px 22px; border-radius: 0; width: fit-content;
       transition: background 0.25s ease, border-color 0.25s ease, gap 0.25s ease;
       white-space: nowrap;
     }
@@ -715,13 +715,13 @@
       margin-top: clamp(48px,6vw,64px);
       background: rgba(20,18,12,0.03);
       border: 1px solid rgba(20,18,12,0.07);
-      border-radius: 4px;
+      border-radius: 0;
       padding: clamp(24px,3vw,36px) clamp(28px,3.5vw,44px);
       display: grid; grid-template-columns: 40px 1fr; gap: clamp(20px,2.5vw,32px);
       align-items: start;
     }
     .nc-callout-icon {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 0;
       background: rgba(184,149,74,0.10); border: 1px solid rgba(184,149,74,0.2);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
@@ -786,7 +786,7 @@
       background: #25D366;
       color: #fff !important;
       padding: 9px 16px;
-      border-radius: 4px;
+      border-radius: 0;
       text-decoration: none;
       font-size: clamp(12px,1.1vw,13px);
       letter-spacing: 0.03em;
@@ -880,7 +880,7 @@
       color: #14120c;
       background: #fff;
       border: 1.5px solid rgba(61,107,94,0.22);
-      border-radius: 4px;
+      border-radius: 0;
       outline: none;
       transition: border-color 0.22s ease, box-shadow 0.22s ease;
       text-align: center;
@@ -906,7 +906,7 @@
       color: #FAF7F0;
       background: var(--verde);
       border: none;
-      border-radius: 4px;
+      border-radius: 0;
       cursor: pointer;
       transition: background 0.22s ease, transform 0.12s ease;
     }
@@ -967,7 +967,7 @@
       text-align: center;
       padding: clamp(24px,3vw,36px) clamp(24px,3vw,40px);
       border: 1px solid rgba(184,149,74,0.28);
-      border-radius: 10px;
+      border-radius: 0;
       background: rgba(184,149,74,0.03);
     }
     .message-label {
@@ -1268,7 +1268,7 @@
 
     <div class="footer-brand">
       <span class="footer-logo">Flores à Beira-Rio</span>
-      <p class="footer-tagline">Preservação floral artesanal<br>Portugal</p>
+      <p class="footer-tagline">Especialistas em Preservação de Flores</p>
       <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="footer-website-link">
         floresabeirario.pt
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
