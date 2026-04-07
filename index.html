@@ -209,8 +209,10 @@
                   face-local x=W → world outer-right → round DOM RIGHT corners */
     .flap-left  .face-front { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
     .flap-right .face-front { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
-    .flap-left  .face-back  { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
-    .flap-right .face-back  { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
+    /* Back faces: initial=CLOSED state. When closed, flap-left rotates -180deg so local-right
+       edge becomes the outer-left corner → round the RIGHT corners. JS swaps these when open. */
+    .flap-left  .face-back  { border-radius: 0 20px 20px 0; clip-path: inset(0px round 0 20px 20px 0); }
+    .flap-right .face-back  { border-radius: 20px 0 0 20px; clip-path: inset(0px round 20px 0 0 20px); }
 
     .panel-face canvas {
       display: block;
@@ -298,7 +300,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      overflow: visible;
+      overflow: hidden;
       /* Match face-back transform so it occupies the same 3D plane, slightly in front */
       transform: rotateY(180deg) translateZ(calc(var(--ht) + 1px));
       backface-visibility: hidden;
@@ -614,7 +616,9 @@
       }
       .vs-item { padding: 10px 12px; border-right: none; border-bottom: 1px solid rgba(184,149,74,0.18); }
       .vs-item:nth-child(odd) { border-right: 1px solid rgba(184,149,74,0.18); }
-      .vs-item:nth-last-child(-n+2) { border-bottom: none; }
+      .vs-item:last-child { border-bottom: none; }
+      /* 5th item spans full width */
+      .vs-item:nth-child(5) { grid-column: 1 / -1; border-right: none; }
     }
 
     /* ═══════════════════════════════════════════════════════════════
@@ -712,7 +716,7 @@
     }
     .footer-inner {
       max-width: 960px; margin: 0 auto;
-      display: grid; grid-template-columns: 1.6fr 1fr 1fr;
+      display: grid; grid-template-columns: 1.6fr 1fr;
       gap: clamp(32px,5vw,64px); padding-bottom: clamp(40px,5vw,60px);
     }
     .footer-logo {
@@ -728,16 +732,16 @@
       transition: color 0.25s ease, gap 0.25s ease;
     }
     .footer-website-link:hover { color: rgba(184,149,74,1); gap: 10px; }
-    .footer-nav h4, .footer-contact h4 {
+    .footer-contact h4 {
       font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase;
       color: rgba(20,18,12,0.38); margin-bottom: 18px;
     }
-    .footer-nav ul, .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-    .footer-nav a, .footer-contact a {
+    .footer-contact ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-contact a {
       font-size: clamp(12px,1.1vw,13px); color: rgba(20,18,12,0.6);
       text-decoration: none; letter-spacing: 0.02em; transition: color 0.22s ease;
     }
-    .footer-nav a:hover, .footer-contact a:hover { color: rgba(20,18,12,0.85); }
+    .footer-contact a:hover { color: rgba(20,18,12,0.85); }
     .contact-item { display: flex; align-items: center; gap: 10px; }
     .contact-item svg { flex-shrink: 0; opacity: 0.35; }
     .footer-social { display: flex; gap: 12px; margin-top: 20px; }
@@ -757,11 +761,28 @@
     }
     .footer-bottom p, .footer-bottom a {
       font-size: 10px; letter-spacing: 0.12em; color: rgba(20,18,12,0.28);
-      text-decoration: none; transition: color 0.22s ease;
+      text-decoration: none; transition: color 0.22s ease; text-transform: uppercase;
     }
     .footer-bottom a:hover { color: rgba(20,18,12,0.6); }
+    /* WhatsApp green button */
+    .whatsapp-btn {
+      display: inline-flex !important;
+      align-items: center;
+      gap: 8px;
+      background: #25D366;
+      color: #fff !important;
+      padding: 9px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: clamp(12px,1.1vw,13px);
+      letter-spacing: 0.03em;
+      transition: background 0.22s ease;
+    }
+    .whatsapp-btn:hover { background: #128C7E !important; color: #fff !important; }
+    .whatsapp-btn svg { stroke: #fff !important; opacity: 1 !important; }
+
     @media (max-width: 700px) {
-      .footer-inner { grid-template-columns: 1fr 1fr; }
+      .footer-inner { grid-template-columns: 1fr; }
       .footer-brand { grid-column: 1 / -1; }
     }
     @media (max-width: 480px) {
@@ -914,6 +935,69 @@
       pointer-events: none;
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       MESSAGE SECTION — optional sender message
+    ═══════════════════════════════════════════════════════════════ */
+    .message-section {
+      display: none;
+      justify-content: center;
+      padding: 8px clamp(12px,4vw,32px) 32px;
+      background: #FAF7F0;
+    }
+    .message-section.visible { display: flex; }
+    .message-inner {
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      padding: clamp(24px,3vw,36px) clamp(24px,3vw,40px);
+      border: 1px solid rgba(184,149,74,0.28);
+      border-radius: 10px;
+      background: rgba(184,149,74,0.03);
+    }
+    .message-label {
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ouro);
+      opacity: 0.75;
+      margin-bottom: 14px;
+    }
+    .message-quote {
+      font-family: 'Homemade Apple', cursive;
+      font-size: clamp(14px,1.5vw,18px);
+      color: rgba(20,18,12,0.75);
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       TERMOS section inside next-chapter
+    ═══════════════════════════════════════════════════════════════ */
+    .terms-section {
+      margin-top: clamp(36px,4vw,52px);
+      padding-top: clamp(24px,3vw,32px);
+      border-top: 1px solid rgba(20,18,12,0.08);
+    }
+    .terms-section p {
+      font-size: clamp(10px,1vw,12px);
+      color: rgba(20,18,12,0.42);
+      line-height: 1.7;
+      letter-spacing: 0.01em;
+    }
+    .terms-section strong { color: rgba(20,18,12,0.55); font-weight: 500; }
+
+    /* Step callout (important note inside step card) */
+    .step-callout {
+      font-size: clamp(11px,1.1vw,13px);
+      color: rgba(20,18,12,0.72);
+      background: rgba(184,149,74,0.08);
+      border-left: 2px solid rgba(184,149,74,0.5);
+      padding: 8px 12px;
+      border-radius: 0 3px 3px 0;
+      line-height: 1.6;
+    }
+    .step-callout strong { color: var(--ouro); }
+
     /* ── Rotate bar (visible when voucher is open) ──────────────────── */
     .rotate-bar {
       display: none;
@@ -1060,7 +1144,7 @@
   <div class="tap-cue" id="tap-cue">
     <div class="tap-cue-ring">
       <svg class="tap-cue-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"
-           stroke="rgba(61,107,94,0.85)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+           stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 11V6a2 2 0 1 1 4 0v5"/>
         <path d="M13 10.5a2 2 0 1 1 4 0V14"/>
         <path d="M17 13.5a2 2 0 1 1 4 0V17c0 2.761-2.239 5-5 5H9c-2 0-3.5-1.5-3.5-3.5v-5.25a2 2 0 1 1 4 0V11"/>
@@ -1159,17 +1243,30 @@
       <p class="vs-value" id="vs-valor">—</p>
     </div>
     <div class="vs-item">
+      <p class="vs-label">Válido até</p>
+      <p class="vs-value" id="vs-validade">—</p>
+    </div>
+    <div class="vs-item">
       <p class="vs-label">Código</p>
       <p class="vs-value vs-code" id="vs-codigo">—</p>
     </div>
   </div>
 </div>
 
-<!-- O que fazer agora? -->
+<!-- Mensagem do remetente (opcional) -->
+<div class="message-section" id="message-section" aria-label="Mensagem">
+  <div class="message-inner">
+    <p class="message-label">Uma mensagem para si</p>
+    <p class="message-quote" id="message-text"></p>
+  </div>
+</div>
+
+<!-- Como utilizar o meu vale -->
 <section class="next-chapter">
   <div class="nc-inner">
     <p class="nc-label">Para os noivos</p>
-    <h2 class="nc-title">O que fazer agora?</h2>
+    <h2 class="nc-title">Como utilizar o meu vale (Próximos Passos)</h2>
+    <p class="nc-subtitle" style="margin-bottom:8px;">Este vale foi pensado para transformar flores com significado num quadro que perdura no tempo.</p>
     <p class="nc-subtitle">O vosso vale presente está activado. Aqui está como transformá-lo numa memória para sempre.</p>
 
     <div class="steps-grid">
@@ -1178,7 +1275,7 @@
         <div class="step-num">01</div>
         <div class="step-content">
           <h3>Visite o nosso site</h3>
-          <p>Descubra como funciona a preservação floral e inspire-se com os nossos trabalhos. Cada bouquet tem a sua história.</p>
+          <p>Visite o nosso site e descubra como funciona o processo de preservação floral, e conheça todas as opções que temos disponíveis.</p>
           <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener" class="step-link">
             Visitar o site
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -1186,23 +1283,14 @@
         </div>
       </div>
 
-      <div class="step-card">
+      <div class="step-card featured">
         <div class="step-num">02</div>
         <div class="step-content">
-          <h3>Explore as nossas opções</h3>
-          <p>Conheça os diferentes estilos e técnicas de preservação disponíveis. Encontre a forma perfeita de eternizar o vosso momento.</p>
-          <a href="https://www.floresabeirario.pt/oferecer-preservacao" target="_blank" rel="noopener" class="step-link">
-            Ver opções de preservação
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <div class="step-card featured">
-        <div class="step-num">03</div>
-        <div class="step-content">
-          <h3>Reserve a vossa sessão</h3>
-          <p>Preencha o formulário de reserva com o código do vosso vale presente. Entraremos em contacto para agendar tudo.</p>
+          <h3>Reserve a data da preservação de flores</h3>
+          <div class="step-callout">
+            <strong>Importante</strong> — Pedimos que faça a sua reserva com o máximo de antecedência de forma a garantirmos vaga na sua data para a preservação das suas flores.
+          </div>
+          <p>Preencha o seguinte formulário e indique o código do seu vale presente, ou contacte-nos diretamente.</p>
           <a href="https://www.floresabeirario.pt/reservar-preservacao" target="_blank" rel="noopener" class="step-cta">
             Reservar agora
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
@@ -1216,6 +1304,13 @@
       <p>
         <strong>Lembrete:</strong> ao preencher o formulário, não se esqueça de inserir o código impresso no vosso vale presente. É através dele que confirmamos e activamos a vossa reserva.
       </p>
+      <p style="margin-top:12px;">
+        <strong>Nota:</strong> Caso o custo dos quadros/elementos extra que escolheu seja superior ao valor do vale que recebeu, o valor do vale será descontado e só terá que pagar a diferença.
+      </p>
+    </div>
+
+    <div class="terms-section">
+      <p><strong>Termos e condições:</strong> Este vale é válido apenas para os serviços de preservação floral da Flores à Beira-Rio. Não é convertível em dinheiro e não é reembolsável.</p>
     </div>
   </div>
 </section>
@@ -1232,38 +1327,6 @@
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
       </a>
     </div>
-
-    <nav class="footer-nav">
-      <h4>Navegação</h4>
-      <ul>
-        <li><a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener">Página inicial</a></li>
-        <li><a href="https://www.floresabeirario.pt/oferecer-preservacao" target="_blank" rel="noopener">Preservação floral</a></li>
-        <li><a href="https://www.floresabeirario.pt/reservar-preservacao" target="_blank" rel="noopener">Reservar sessão</a></li>
-      </ul>
-      <div class="footer-social">
-        <!-- Actualizar handles das redes sociais se necessário -->
-        <a href="https://www.instagram.com/floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none"/>
-          </svg>
-        </a>
-        <a href="https://www.facebook.com/floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
-          </svg>
-        </a>
-        <a href="https://www.tiktok.com/@floresabeirario" target="_blank" rel="noopener" class="social-link" aria-label="TikTok">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/>
-          </svg>
-        </a>
-        <a href="https://www.casamentos.pt/ideias-criativas-para-casamentos/flores-a-beira-rio-preservacao-de-flores--e171385" target="_blank" rel="noopener" class="social-link" aria-label="Casamentos.pt">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-          </svg>
-        </a>
-      </div>
-    </nav>
 
     <div class="footer-contact">
       <h4>Contacto</h4>
@@ -1285,8 +1348,8 @@
           </a>
         </li>
         <li>
-          <a href="https://wa.me/351934680300" target="_blank" rel="noopener" class="contact-item">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <a href="https://wa.me/351934680300" target="_blank" rel="noopener" class="whatsapp-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
             </svg>
             WhatsApp
@@ -1415,9 +1478,31 @@
     if (!raf) raf = requestAnimationFrame(tick);
   }
 
+  /* ── Corner radius: swap back-face rounding per open/closed state ── */
+  function updateCornerRadius() {
+    const faceBackL = document.getElementById('face-cover-left');
+    const faceBackR = document.getElementById('face-cover-right');
+    if (!faceBackL || !faceBackR) return;
+    if (coverSide === 'closed') {
+      /* Closed: flap-left rotated -180deg → local-right = outer-left corner */
+      faceBackL.style.borderRadius = '0 20px 20px 0';
+      faceBackL.style.clipPath     = 'inset(0px round 0 20px 20px 0)';
+      /* Closed: flap-right rotated +180deg → local-left = outer-right corner */
+      faceBackR.style.borderRadius = '20px 0 0 20px';
+      faceBackR.style.clipPath     = 'inset(0px round 20px 0 0 20px)';
+    } else {
+      /* Open+flipped: gatefold 180deg → local-left of faceBackL = outer-right */
+      faceBackL.style.borderRadius = '20px 0 0 20px';
+      faceBackL.style.clipPath     = 'inset(0px round 20px 0 0 20px)';
+      faceBackR.style.borderRadius = '0 20px 20px 0';
+      faceBackR.style.clipPath     = 'inset(0px round 0 20px 20px 0)';
+    }
+  }
+
   /* ── Cover canvas swap ──────────────────────────────────────────── */
   function updateCoverCanvases() {
     if (!page2Offscreen) return;
+    updateCornerRadius();
     if (coverSide === 'closed') {
       /*
         Closed view: flaps fold over center.
@@ -1698,13 +1783,19 @@
     btn.addEventListener('pointercancel', stopRotating);
   });
 
-  /* ── Scroll: hide fixed UI when user leaves hero ────────────────── */
-  window.addEventListener('scroll', () => {
+  /* ── Scroll: hide fixed UI when user leaves hero or summary is visible ── */
+  function checkBottomUiVisibility() {
     const heroH = document.querySelector('.hero-section').offsetHeight;
     const summary = document.getElementById('voucher-summary');
-    const summaryTop = summary ? summary.getBoundingClientRect().top + window.scrollY : heroH;
-    bottomUi.classList.toggle('hidden', window.scrollY > Math.min(heroH * 0.55, summaryTop - 80));
-  }, { passive: true });
+    const summaryRect = summary ? summary.getBoundingClientRect() : null;
+    const summaryVisible = summaryRect && summaryRect.top < window.innerHeight - 20;
+    const summaryTop = summaryRect ? summaryRect.top + window.scrollY : heroH;
+    bottomUi.classList.toggle('hidden',
+      summaryVisible || window.scrollY > Math.min(heroH * 0.55, summaryTop - 80)
+    );
+  }
+  window.addEventListener('scroll', checkBottomUiVisibility, { passive: true });
+  window.addEventListener('resize', checkBottomUiVisibility, { passive: true });
 
   /* ── PDF rendering ───────────────────────────────────────────────── */
   /*
@@ -1813,6 +1904,7 @@
     tFold = 0;
 
     apply();
+    updateCornerRadius(); /* set correct corners for initial closed state */
     loadPDF(); /* reveals gatefold once canvases are ready */
 
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
@@ -1851,10 +1943,11 @@
     /* ── No code → show search page, hide voucher UI ─────────────── */
     if (!code) {
       document.getElementById('search-page').classList.add('visible');
-      document.querySelector('.hero-section').style.display = 'none';
-      document.querySelector('.next-chapter').style.display = 'none';
-      document.querySelector('.site-footer').style.display  = 'none';
-      document.querySelector('.bottom-ui').style.display    = 'none';
+      document.querySelector('.hero-section').style.display  = 'none';
+      document.querySelector('.next-chapter').style.display  = 'none';
+      document.querySelector('.site-footer').style.display   = 'none';
+      document.querySelector('.bottom-ui').style.display     = 'none';
+      document.getElementById('message-section').style.display = 'none';
       document.getElementById('rotate-bar').style.display   = 'none';
       document.querySelector('.brand').style.position       = 'absolute';
 
@@ -1909,11 +2002,22 @@
         const summary = document.getElementById('voucher-summary');
         if (summary) {
           const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-          set('vs-de',     data.remetente);
-          set('vs-para',   data.destinatario);
-          set('vs-valor',  data.valor);
-          set('vs-codigo', data.codigo);
+          set('vs-de',       data.remetente);
+          set('vs-para',     data.destinatario);
+          set('vs-valor',    data.valor);
+          set('vs-validade', data.validade || '—');
+          set('vs-codigo',   data.codigo);
           summary.classList.add('visible');
+          // Re-check bottom UI visibility now that summary is shown
+          if (typeof checkBottomUiVisibility === 'function') checkBottomUiVisibility();
+        }
+
+        // Show optional sender message
+        const msgSection = document.getElementById('message-section');
+        const msgText    = document.getElementById('message-text');
+        if (msgSection && msgText && data.mensagem && data.mensagem.trim()) {
+          msgText.textContent = data.mensagem.trim();
+          msgSection.classList.add('visible');
         }
       } catch (err) {
         console.warn('[fbr-voucher] Failed to load voucher data:', err);
