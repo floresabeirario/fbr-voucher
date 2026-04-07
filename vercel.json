@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/:code([A-Za-z0-9_\\-]+)", "destination": "/api/share?code=:code" }
   ]
 }
