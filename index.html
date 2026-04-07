@@ -310,7 +310,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      overflow: visible;
+      overflow: visible; /* clipped when open — see .voucher-open below */
       /* Match face-back transform so it occupies the same 3D plane, slightly in front */
       transform: rotateY(180deg) translateZ(calc(var(--ht) + 1px));
       backface-visibility: hidden;
@@ -334,12 +334,13 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      overflow: visible;
+      overflow: hidden;
       transform: translateZ(calc(var(--ht) + 0.1px));
       opacity: 0;
       transition: opacity 0.3s ease;
     }
     .voucher-open .handwritten-center { opacity: 1; }
+    .voucher-open .handwritten-cover  { overflow: hidden; }
     /* "de 300€" — centered on the value underline */
     .hw-valor {
       left: 50%;
@@ -353,7 +354,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      overflow: visible;
+      overflow: hidden;
       transform: translateZ(calc(var(--ht) + 0.1px));
       opacity: 0;
       transition: opacity 0.3s ease;
