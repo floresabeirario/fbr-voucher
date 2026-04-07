@@ -1017,11 +1017,10 @@
       position: fixed;
       inset: 0;
       z-index: 9999;
-      background: #FAF7F0;
+      background: transparent; /* flaps tile 100% of viewport — no fill needed */
       cursor: pointer;
       overflow: hidden;
       touch-action: manipulation;
-      /* exit: applied via JS */
     }
     #env-overlay.env-exit {
       transform: translateY(-105%);
@@ -1082,24 +1081,13 @@
       transform: rotateX(-178deg);
     }
 
-    /* Center content (seal + text) */
-    .env-center {
+    /* Seal — pinned to exact viewport center */
+    .env-seal {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 20;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: clamp(12px, 2.2vh, 22px);
-      text-align: center;
-      pointer-events: none;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .env-seal {
       width: clamp(70px, 11vmin, 100px);
       height: clamp(70px, 11vmin, 100px);
       border-radius: 50%;
@@ -1111,7 +1099,7 @@
         0 0 0 5px rgba(61,107,94,0.13),
         0 0 0 10px rgba(61,107,94,0.055),
         0 12px 38px rgba(61,107,94,0.26);
-      position: relative;
+      pointer-events: none;
     }
     .env-seal::before {
       content: '';
@@ -1119,6 +1107,26 @@
       inset: 7px;
       border-radius: 50%;
       border: 0.75px dashed rgba(255,255,255,0.22);
+    }
+
+    /* Text block — starts just below the seal */
+    .env-text-wrap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      /* push down: half seal height + gap */
+      padding-top: calc(clamp(35px, 5.5vmin, 50px) + clamp(14px, 2vh, 22px));
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(8px, 1.2vh, 12px);
+      text-align: center;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .env-brand {
@@ -1153,22 +1161,21 @@
   <div id="env-flap-outer">
     <div id="env-flap-top" class="env-flap"></div>
   </div>
-  <!-- Center: wax seal + text -->
-  <div class="env-center">
-    <div class="env-seal" aria-hidden="true">
-      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(19,19)">
-          <!-- 5 petals -->
-          <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(0)"/>
-          <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(72)"/>
-          <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(144)"/>
-          <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(216)"/>
-          <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(288)"/>
-          <!-- center -->
-          <circle cx="0" cy="0" r="3.8" fill="rgba(255,255,255,0.95)"/>
-        </g>
-      </svg>
-    </div>
+  <!-- Seal: pinned to exact viewport center (intersection of all four flaps) -->
+  <div class="env-seal" aria-hidden="true">
+    <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(19,19)">
+        <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(0)"/>
+        <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(72)"/>
+        <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(144)"/>
+        <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(216)"/>
+        <ellipse cx="0" cy="-8" rx="3" ry="6" fill="rgba(255,255,255,0.78)" transform="rotate(288)"/>
+        <circle cx="0" cy="0" r="3.8" fill="rgba(255,255,255,0.95)"/>
+      </g>
+    </svg>
+  </div>
+  <!-- Text: positioned below seal -->
+  <div class="env-text-wrap">
     <p class="env-brand">Um presente para si</p>
     <p class="env-prompt">· Toque para revelar ·</p>
   </div>
