@@ -4,11 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Vale presente digital Flores à Beira-Rio — Preservação floral artesanal em Portugal.">
+  <meta name="theme-color" content="#3D6B5E">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%233D6B5E'/><circle cx='50' cy='50' r='20' fill='%23FAF7F0'/></svg>">
   <title>Vale Presente · Flores à Beira-Rio</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
@@ -42,7 +45,7 @@
     body {
       width: 100%;
       background: #FAF7F0;
-      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      font-family: 'Jost', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       user-select: none;
       -webkit-user-select: none;
@@ -261,7 +264,7 @@
       letter-spacing: 0.5px;
     }
     .card-loading-pct {
-      font-family: 'Google Sans', system-ui, sans-serif;
+      font-family: 'Jost', system-ui, sans-serif;
       font-size: clamp(18px, 2.5vw, 32px);
       color: rgba(61,107,94,0.5);
       letter-spacing: 1px;
@@ -300,7 +303,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      overflow: hidden;
+      overflow: visible;
       /* Match face-back transform so it occupies the same 3D plane, slightly in front */
       transform: rotateY(180deg) translateZ(calc(var(--ht) + 1px));
       backface-visibility: hidden;
@@ -565,7 +568,7 @@
       padding: 20px clamp(12px,4vw,32px) 32px;
       background: #FAF7F0;
     }
-    .voucher-summary.visible { display: flex; }
+    .voucher-summary.visible { display: flex; animation: fbr-fade-up 0.45s ease forwards; }
     .vs-card {
       display: flex;
       flex-wrap: nowrap;
@@ -602,7 +605,7 @@
       text-overflow: ellipsis;
     }
     .vs-value.vs-code {
-      font-family: 'Google Sans Mono', 'Roboto Mono', ui-monospace, monospace;
+      font-family: 'Roboto Mono', ui-monospace, monospace;
       letter-spacing: 0.1em;
       font-size: 12px;
       color: var(--verde);
@@ -744,15 +747,6 @@
     .footer-contact a:hover { color: rgba(20,18,12,0.85); }
     .contact-item { display: flex; align-items: center; gap: 10px; }
     .contact-item svg { flex-shrink: 0; opacity: 0.35; }
-    .footer-social { display: flex; gap: 12px; margin-top: 20px; }
-    .social-link {
-      display: flex; align-items: center; justify-content: center;
-      width: 34px; height: 34px;
-      border: 1px solid rgba(20,18,12,0.15); border-radius: 50%;
-      color: rgba(20,18,12,0.4); text-decoration: none;
-      transition: border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
-    }
-    .social-link:hover { border-color: rgba(184,149,74,0.45); color: rgba(184,149,74,0.9); background: rgba(184,149,74,0.07); }
     .footer-bottom {
       max-width: 960px; margin: 0 auto;
       padding: 20px 0 24px;
@@ -857,7 +851,7 @@
     .search-input {
       width: 100%;
       padding: 16px 20px;
-      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      font-family: 'Jost', system-ui, sans-serif;
       font-size: clamp(14px, 1.5vw, 16px);
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -883,7 +877,7 @@
     .search-btn {
       width: 100%;
       padding: 16px 24px;
-      font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+      font-family: 'Jost', system-ui, sans-serif;
       font-size: clamp(12px, 1.2vw, 13px);
       letter-spacing: 0.18em;
       text-transform: uppercase;
@@ -944,7 +938,7 @@
       padding: 8px clamp(12px,4vw,32px) 32px;
       background: #FAF7F0;
     }
-    .message-section.visible { display: flex; }
+    .message-section.visible { display: flex; animation: fbr-fade-up 0.45s ease forwards; }
     .message-inner {
       max-width: 680px;
       width: 100%;
@@ -1048,6 +1042,11 @@
       user-select: none;
       -webkit-user-select: none;
       pointer-events: none;
+    }
+
+    @keyframes fbr-fade-up {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -1267,8 +1266,6 @@
     <p class="nc-label">Para os noivos</p>
     <h2 class="nc-title">Como utilizar o meu vale (Próximos Passos)</h2>
     <p class="nc-subtitle" style="margin-bottom:8px;">Este vale foi pensado para transformar flores com significado num quadro que perdura no tempo.</p>
-    <p class="nc-subtitle">O vosso vale presente está activado. Aqui está como transformá-lo numa memória para sempre.</p>
-
     <div class="steps-grid">
 
       <div class="step-card">
@@ -1332,11 +1329,11 @@
       <h4>Contacto</h4>
       <ul>
         <li>
-          <a href="mailto:info@floresabeirario.pt" class="contact-item">
+          <a href="mailto:geral@floresabeirario.pt" class="contact-item">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/>
             </svg>
-            info@floresabeirario.pt
+            geral@floresabeirario.pt
           </a>
         </li>
         <li>
@@ -1933,7 +1930,11 @@
     }, 1400);
   }
 
-  init();
+  /* Only initialise the 3D voucher when a code is present in the URL.
+     Avoids downloading the PDF unnecessarily on the search/landing page. */
+  if (window.location.pathname.replace(/^\//, '').split('/')[0].trim()) {
+    init();
+  }
 </script>
 
 <script>

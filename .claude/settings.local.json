@@ -18,7 +18,8 @@
       "Bash(node -e ':*)",
       "WebFetch(domain:www.floresabeirario.pt)",
       "Bash(python3 -c ':*)",
-      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\maria\\\\Documents\\\\fbr-voucher\\\\fbr-voucher\\\\index.html' | Measure-Object -Line\")"
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\maria\\\\Documents\\\\fbr-voucher\\\\fbr-voucher\\\\index.html' | Measure-Object -Line\")",
+      "Bash(powershell -Command \"\\(Get-Content index.html -Raw\\) -replace 'overflow: hidden;\\\\r\\\\n      /\\\\* Match face-back transform', 'overflow: visible;\\\\r\\\\n      /* Match face-back transform' | Set-Content index.html -NoNewline\")"
     ]
   }
 }
