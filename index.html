@@ -1582,6 +1582,8 @@
     apply();
   }
 
+  let autoZoomTimer = null;
+
   function toggleFold() {
     isOpen = !isOpen;
     tFold  = isOpen ? 1 : 0;
@@ -1589,10 +1591,20 @@
     tX     = 0;
     if (raf) { cancelAnimationFrame(raf); raf = null; }
     vFold  = 0;
+    if (autoZoomTimer) { clearTimeout(autoZoomTimer); autoZoomTimer = null; }
     document.body.classList.toggle('voucher-open', isOpen);
     if (!isOpen) { zoomScale = SCALE_OPEN; panX = 0; }  // reset zoom+pan on close
     applySceneScale(isOpen ? zoomScale : SCALE_CLOSE, true);
     startSpring();
+
+    /* Mobile: após mostrar o cartão completo (0.5), faz zoom in automático para tamanho legível (1.0) */
+    if (isOpen && isMobile()) {
+      autoZoomTimer = setTimeout(() => {
+        zoomScale = SCALE_CLOSE;
+        applySceneScale(SCALE_CLOSE, true);
+        autoZoomTimer = null;
+      }, 1800);
+    }
   }
 
   function onUp() {
@@ -1688,6 +1700,7 @@
   // 2-finger pinch at window level — works anywhere on screen (side panels included)
   window.addEventListener('touchstart', e => {
     if (e.touches.length !== 2 || !isOpen || !isMobile()) return;
+    if (autoZoomTimer) { clearTimeout(autoZoomTimer); autoZoomTimer = null; }
     pinching       = true;
     dragging       = false;
     pinchStartDist = pinchDist(e.touches);
