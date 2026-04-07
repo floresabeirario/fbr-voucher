@@ -18,11 +18,11 @@ module.exports = async function handler(req, res) {
     const sheets = google.sheets({ version: 'v4', auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'A:E',
+      range: 'A:F',
     });
 
     const rows = response.data.values || [];
-    // rows[0] is header: código, remetente, destinatário, valor, mensagem
+    // rows[0] is header: código, remetente, destinatário, valor, mensagem, validade
     const match = rows.slice(1).find(row => row[0] === code);
 
     if (!match) {
@@ -36,6 +36,7 @@ module.exports = async function handler(req, res) {
       destinatario: match[2] || '',
       valor:        match[3] || '',
       mensagem:     match[4] || '',
+      validade:     match[5] || '',
     });
   } catch (err) {
     console.error('[fbr-voucher] Sheets error:', err);
