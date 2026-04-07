@@ -1032,6 +1032,19 @@
       pointer-events: none;
     }
 
+    /* Bottom 3 flaps — separate container, exits downward */
+    #env-bottom-flaps {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #env-bottom-flaps.env-exit-down {
+      transform: translateY(105%);
+      transition: transform 0.85s cubic-bezier(0.76, 0, 0.24, 1);
+    }
+
     /* Static decorative flaps */
     .env-flap {
       position: absolute;
@@ -1155,12 +1168,15 @@
 </head>
 <body>
 
-<!-- Envelope intro overlay — only shown on voucher pages (JS hides on search) -->
-<div id="env-overlay" aria-hidden="true">
-  <!-- Static decorative flaps (bottom, left, right) -->
+<!-- Bottom 3 envelope flaps — animated downward on exit (separate from overlay) -->
+<div id="env-bottom-flaps" aria-hidden="true">
   <div class="env-flap env-flap-bottom"></div>
   <div class="env-flap env-flap-left"></div>
   <div class="env-flap env-flap-right"></div>
+</div>
+
+<!-- Envelope intro overlay — only shown on voucher pages (JS hides on search) -->
+<div id="env-overlay" aria-hidden="true">
   <!-- Animated top flap -->
   <div id="env-flap-outer">
     <div id="env-flap-top" class="env-flap"></div>
@@ -2121,13 +2137,18 @@
 <script>
 /* ── Envelope intro ────────────────────────────────────────────── */
 (function () {
-  var overlay   = document.getElementById('env-overlay');
-  var flapOuter = document.getElementById('env-flap-outer');
+  var overlay      = document.getElementById('env-overlay');
+  var bottomFlaps  = document.getElementById('env-bottom-flaps');
+  var flapOuter    = document.getElementById('env-flap-outer');
   if (!overlay || !flapOuter) return;
 
   /* Only show on voucher pages (code in path) */
   var code = window.location.pathname.replace(/^\//, '').split('/')[0].trim();
-  if (!code) { overlay.style.display = 'none'; return; }
+  if (!code) {
+    overlay.style.display = 'none';
+    if (bottomFlaps) bottomFlaps.style.display = 'none';
+    return;
+  }
 
   var opened = false;
   function openEnvelope() {
@@ -2137,14 +2158,16 @@
     /* Phase 1: top flap folds back */
     flapOuter.classList.add('open');
 
-    /* Phase 2: whole overlay slides up (starts while flap is mid-fold) */
+    /* Phase 2: overlay slides up, bottom 3 flaps slide down */
     setTimeout(function () {
       overlay.classList.add('env-exit');
+      if (bottomFlaps) bottomFlaps.classList.add('env-exit-down');
     }, 340);
 
     /* Remove from DOM once animation is done */
     setTimeout(function () {
       overlay.remove();
+      if (bottomFlaps) bottomFlaps.remove();
     }, 1350);
   }
 
