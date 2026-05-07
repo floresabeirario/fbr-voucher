@@ -1,8 +1,11 @@
-const { google } = require('googleapis');
+const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const SPREADSHEET_ID = '1VuFbI98844n_IlYeYQ5LaO8zG1aOjmCapinmlEmgyZY';
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 function escapeHtml(str) {
   return String(str)
@@ -27,24 +30,17 @@ module.exports = async function handler(req, res) {
   let destinatario = null;
 
   try {
-    const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_CLIENT_EMAIL,
-      key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
+    const { data } = await supabase
+      .from('vouchers')
+      .select('sender_name, recipient_name')
+      .eq('code', code.toUpperCase())
+      .eq('payment_status', '100_pago')
+      .is('deleted_at', null)
+      .maybeSingle();
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'A:F',
-    });
-
-    const rows = response.data.values || [];
-    const match = rows.slice(1).find(row => row[0] === code);
-
-    if (match) {
-      remetente    = match[1] || null;
-      destinatario = match[2] || null;
+    if (data) {
+      remetente    = data.sender_name || null;
+      destinatario = data.recipient_name || null;
     }
   } catch (err) {
     console.error('[fbr-voucher] share error:', err);
@@ -60,7 +56,7 @@ module.exports = async function handler(req, res) {
 
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host  = req.headers.host || '';
-  const pageUrl = `${proto}://${host}/${encodeURIComponent(code)}`;
+  const pageUrl  = `${proto}://${host}/${encodeURIComponent(code)}`;
   const imageUrl = `${proto}://${host}/favicon/web-app-manifest-512x512.png`;
 
   const ogTags = `
