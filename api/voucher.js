@@ -1,6 +1,26 @@
-const { google } = require('googleapis');
+const { createClient } = require('@supabase/supabase-js');
 
-const SPREADSHEET_ID = '1VuFbI98844n_IlYeYQ5LaO8zG1aOjmCapinmlEmgyZY';
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+function formatAmount(amount) {
+  if (amount == null) return '';
+  return new Intl.NumberFormat('pt-PT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 module.exports = async function handler(req, res) {
   const { code } = req.query;
 
@@ -8,38 +28,25 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Missing code' });
   }
 
-  try {
-    const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_CLIENT_EMAIL,
-      key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
+  const { data, error } = await supabase
+    .from('vouchers')
+    .select('code, sender_name, recipient_name, amount, message, expiry_date')
+    .eq('code', code.toUpperCase())
+    .eq('payment_status', '100_pago')
+    .is('deleted_at', null)
+    .single();
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'A:F',
-    });
-
-    const rows = response.data.values || [];
-    // rows[0] is header: código, remetente, destinatário, valor, mensagem, validade
-    const match = rows.slice(1).find(row => row[0] === code);
-
-    if (!match) {
-      return res.status(404).json({ error: 'Voucher not found' });
-    }
-
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({
-      codigo:       match[0] || '',
-      remetente:    match[1] || '',
-      destinatario: match[2] || '',
-      valor:        match[3] || '',
-      mensagem:     match[4] || '',
-      validade:     match[5] || '',
-    });
-  } catch (err) {
-    console.error('[fbr-voucher] Sheets error:', err);
-    return res.status(500).json({ error: err.message || String(err) });
+  if (error || !data) {
+    return res.status(404).json({ error: 'Voucher not found' });
   }
+
+  res.setHeader('Cache-Control', 'no-store');
+  return res.status(200).json({
+    codigo:       data.code,
+    remetente:    data.sender_name,
+    destinatario: data.recipient_name,
+    valor:        formatAmount(data.amount),
+    mensagem:     data.message || '',
+    validade:     formatDate(data.expiry_date),
+  });
 };
