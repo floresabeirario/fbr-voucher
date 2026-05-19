@@ -61,7 +61,14 @@ module.exports = async function handler(req, res) {
     if (!response.ok) {
       const text = await response.text();
       console.error('[fbr-voucher] Supabase RPC error:', response.status, text);
-      return res.status(500).json({ error: 'Lookup failed' });
+      // DEBUG: incluir detalhe na resposta para diagnosticar — tirar depois.
+      return res.status(500).json({
+        error: 'Lookup failed',
+        debug_status: response.status,
+        debug_body: text,
+        debug_url_set: Boolean(SUPABASE_URL),
+        debug_key_len: SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.length : 0,
+      });
     }
 
     const rows = await response.json();
