@@ -1,6 +1,33 @@
-const { google } = require('googleapis');
+// Lê vales do Supabase (admin.floresabeirario.pt grava aqui).
+// Substituiu o lookup em Google Sheets — a Sheet ficou desactualizada
+// porque o admin envia tudo para Supabase, não para a Sheet.
+//
+// Usa a RPC `get_voucher_by_code` (definida em mig 039 do fbr-admin2)
+// que devolve só o vale com payment_status='100_pago', não-arquivado.
+// Vales não pagos OU arquivados respondem 404 (como antes).
+//
+// Env vars necessárias na Vercel:
+//   SUPABASE_URL       — ex.: https://xxxxxx.supabase.co
+//   SUPABASE_ANON_KEY  — public anon key (a mesma que usa o admin)
 
-const SPREADSHEET_ID = '1VuFbI98844n_IlYeYQ5LaO8zG1aOjmCapinmlEmgyZY';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+function formatValidade(isoDate) {
+  if (!isoDate) return '';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (!m) return isoDate;
+  return `${m[2]}/${m[1]}`;
+}
+
+function formatValor(amount) {
+  if (amount === null || amount === undefined || amount === '') return '';
+  const n = Number(amount);
+  if (Number.isNaN(n)) return String(amount);
+  if (Number.isInteger(n)) return `${n}€`;
+  return `${n.toFixed(2).replace('.', ',')}€`;
+}
+
 module.exports = async function handler(req, res) {
   const { code } = req.query;
 
@@ -8,22 +35,31 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Missing code' });
   }
 
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('[fbr-voucher] Missing SUPABASE_URL / SUPABASE_ANON_KEY env vars');
+    return res.status(500).json({ error: 'Server not configured' });
+  }
+
   try {
-    const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_CLIENT_EMAIL,
-      key: (process.env.GOOGLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    const rpcUrl = `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/rpc/get_voucher_by_code`;
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ p_code: code }),
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId: SPREADSHEET_ID,
-      range: 'A:F',
-    });
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('[fbr-voucher] Supabase RPC error:', response.status, text);
+      return res.status(500).json({ error: 'Lookup failed' });
+    }
 
-    const rows = response.data.values || [];
-    // rows[0] is header: código, remetente, destinatário, valor, mensagem, validade
-    const match = rows.slice(1).find(row => row[0] === code);
+    const rows = await response.json();
+    const match = Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
 
     if (!match) {
       return res.status(404).json({ error: 'Voucher not found' });
@@ -31,15 +67,15 @@ module.exports = async function handler(req, res) {
 
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
-      codigo:       match[0] || '',
-      remetente:    match[1] || '',
-      destinatario: match[2] || '',
-      valor:        match[3] || '',
-      mensagem:     match[4] || '',
-      validade:     match[5] || '',
+      codigo:       match.code || '',
+      remetente:    match.sender_name || '',
+      destinatario: match.recipient_name || '',
+      valor:        formatValor(match.amount),
+      mensagem:     match.message || '',
+      validade:     formatValidade(match.expiry_date),
     });
   } catch (err) {
-    console.error('[fbr-voucher] Sheets error:', err);
+    console.error('[fbr-voucher] Supabase error:', err);
     return res.status(500).json({ error: err.message || String(err) });
   }
 };
