@@ -1,6 +1,6 @@
 // Server-rendered OG tags para partilha. Lê remetente/destinatário do
-// Supabase para preencher meta tags Open Graph quando alguém partilha
-// um link como https://voucher.floresabeirario.pt/9HLCX2.
+// Supabase via RPC para preencher meta tags Open Graph quando alguém
+// partilha um link como https://voucher.floresabeirario.pt/9HLCX2.
 //
 // Substituiu o lookup em Google Sheets — ver nota em voucher.js.
 
@@ -65,7 +65,7 @@ module.exports = async function handler(req, res) {
 
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host  = req.headers.host || '';
-  const pageUrl = `${proto}://${host}/${encodeURIComponent(code)}`;
+  const pageUrl  = `${proto}://${host}/${encodeURIComponent(code)}`;
   const imageUrl = `${proto}://${host}/favicon/web-app-manifest-512x512.png`;
 
   const ogTags = `

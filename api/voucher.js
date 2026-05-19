@@ -2,9 +2,10 @@
 // Substituiu o lookup em Google Sheets — a Sheet ficou desactualizada
 // porque o admin envia tudo para Supabase, não para a Sheet.
 //
-// Usa a RPC `get_voucher_by_code` (definida em mig 039 do fbr-admin2)
-// que devolve só o vale com payment_status='100_pago', não-arquivado.
-// Vales não pagos OU arquivados respondem 404 (como antes).
+// Usa a RPC `get_voucher_by_code` (mig 039 do fbr-admin2). A mig 040
+// dropou o SELECT directo do role anon na tabela `vouchers`, por isso
+// não dá para fazer `.from('vouchers').select(...)` daqui — só a RPC
+// passa pelo lockdown.
 //
 // Env vars necessárias na Vercel:
 //   SUPABASE_URL       — ex.: https://xxxxxx.supabase.co
@@ -17,6 +18,7 @@ function formatValidade(isoDate) {
   if (!isoDate) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
   if (!m) return isoDate;
+  // Spec do projecto: vale mostra só mês/ano.
   return `${m[2]}/${m[1]}`;
 }
 
@@ -24,8 +26,12 @@ function formatValor(amount) {
   if (amount === null || amount === undefined || amount === '') return '';
   const n = Number(amount);
   if (Number.isNaN(n)) return String(amount);
-  if (Number.isInteger(n)) return `${n}€`;
-  return `${n.toFixed(2).replace('.', ',')}€`;
+  return new Intl.NumberFormat('pt-PT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 module.exports = async function handler(req, res) {
