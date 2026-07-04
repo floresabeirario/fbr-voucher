@@ -14,6 +14,30 @@
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
+// Rate limit best-effort por instância serverless: trava tentativas de
+// adivinhar códigos à força bruta. Os códigos têm ~30 bits de entropia
+// (mig 083, gen_random_bytes), por isso o brute force já é inviável, mas
+// não custa nada fechar a porta. 30 pedidos/min/IP dá folga a um
+// destinatário legítimo e mata scripts.
+const RATE_LIMIT = 30;
+const RATE_WINDOW_MS = 60_000;
+const _hits = new Map(); // ip → { count, resetAt }
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  if (_hits.size > 500) {
+    for (const [k, v] of _hits) { if (now > v.resetAt) _hits.delete(k); }
+  }
+  const entry = _hits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    _hits.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count++;
+  return false;
+}
+
 function formatValidade(isoDate) {
   if (!isoDate) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
@@ -35,6 +59,11 @@ function formatValor(amount) {
 }
 
 module.exports = async function handler(req, res) {
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'anonymous';
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
   const { code } = req.query;
 
   if (!code) {
