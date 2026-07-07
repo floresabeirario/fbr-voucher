@@ -6,9 +6,16 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createRateLimiter, clientIp } = require('./_ratelimit');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+
+// Mesmo limite que /api/voucher — sem isto o rewrite /:code era um
+// caminho alternativo para testar códigos sem limite (o título OG
+// revela se o código existe). Quando excede, servimos a página com
+// OG genérico em vez de 429: um IP partilhado nunca fica bloqueado.
+const isRateLimited = createRateLimiter();
 
 function escapeHtml(str) {
   return String(str)
@@ -51,7 +58,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).send(html);
   }
 
-  const match = await fetchVoucher(code);
+  const match = isRateLimited(clientIp(req)) ? null : await fetchVoucher(code);
   const remetente = match?.sender_name || null;
   const destinatario = match?.recipient_name || null;
 
@@ -79,8 +86,10 @@ module.exports = async function handler(req, res) {
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}">`;
 
+  // Regex em vez de string literal: se o <title> do index.html mudar,
+  // a injecção de OG tags continua a funcionar em vez de falhar calada.
   html = html.replace(
-    '<title>Vale Presente · Flores à Beira-Rio</title>',
+    /<title>[^<]*<\/title>/,
     `<title>${escapeHtml(title)}</title>${ogTags}`
   );
 

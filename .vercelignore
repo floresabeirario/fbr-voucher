@@ -1,0 +1,7 @@
+# Tudo neste repo é servido publicamente no deploy — excluir o que não
+# é para servir. O PDF (12 MB) é só a fonte de design: o site usa as
+# imagens pré-renderizadas em img/ (ver scripts/render-pdf.mjs).
+voucher_azul.pdf
+scripts
+.claude
+README.md

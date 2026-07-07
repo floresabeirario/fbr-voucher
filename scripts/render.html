@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<!-- Página de trabalho usada por render-pdf.mjs (nunca é deployada:
+     scripts/ está no .vercelignore). Renderiza as 2 páginas do PDF do
+     cartão com pdf.js e expõe-nas como data URLs WebP em window.result. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  window.result = null;
+  window.error = null;
+
+  async function renderPage(pdf, num, targetW) {
+    const page = await pdf.getPage(num);
+    const vp0 = page.getViewport({ scale: 1 });
+    const vp = page.getViewport({ scale: targetW / vp0.width });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(vp.width);
+    canvas.height = Math.round(vp.height);
+    const ctx = canvas.getContext('2d', { alpha: false });
+    // Fundo branco: o PDF pode ter transparência; o cartão é papel.
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    return canvas;
+  }
+
+  (async function () {
+    try {
+      // 2700px = cartão a 900px CSS × 3 (HiDPI), o máximo que o site usa.
+      const TARGET_W = 2700;
+      const pdf = await pdfjsLib.getDocument('/voucher_azul.pdf').promise;
+      const pages = [];
+      for (let n = 1; n <= Math.min(pdf.numPages, 2); n++) {
+        const canvas = await renderPage(pdf, n, TARGET_W);
+        pages.push({ num: n, w: canvas.width, h: canvas.height,
+                     webp: canvas.toDataURL('image/webp', 0.85) });
+      }
+      window.result = { numPages: pdf.numPages, pages };
+    } catch (e) {
+      window.error = String(e && e.message || e);
+    }
+  })();
+</script>
+</body>
+</html>

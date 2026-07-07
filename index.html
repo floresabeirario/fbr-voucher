@@ -4,11 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; worker-src blob: https://cdnjs.cloudflare.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="description" content="Vale presente digital Flores à Beira-Rio — Preservação floral artesanal em Portugal.">
   <meta name="theme-color" content="#3D6B5E">
   <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
-  <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
   <link rel="icon" type="image/png" sizes="96x96" href="favicon/favicon-96x96.png">
   <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
   <title>Vale Presente · Flores à Beira-Rio</title>
@@ -16,7 +15,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha512-q+4liFwdPC/bNdhUpZx6aXDx/h77yEQtn4I1slHydcbZK34nLaR3cAeYSJshoxIOq3mjEf7xJE8YWIUHMn+oCQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <style>
     @font-face {
@@ -1498,10 +1496,6 @@
 </footer>
 
 <script>
-  /* ── PDF.js ─────────────────────────────────────────────────────── */
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
   /* ── DOM refs ───────────────────────────────────────────────────── */
   const gatefold     = document.getElementById('gatefold');
   const cardLoading  = document.getElementById('card-loading');
@@ -1893,26 +1887,65 @@
   /*
     PIXEL_SCALE: 2× (normal) or 3× (HiDPI) for crisp rendering.
     Strategy:
-      1. Render each full PDF page to an offscreen canvas at PIXEL_SCALE.
-      2. Use copySlice() to cut the appropriate horizontal slice into each
-         panel's canvas. Panel canvases are sized to the slice width.
+      1. As páginas do cartão vêm pré-renderizadas do PDF como WebP
+         (img/voucher-p1.webp e p2, 2700px de largura — o máximo que o
+         antigo caminho pdf.js produzia: cartão 900px × 3 HiDPI).
+         Regenerar com scripts/render-pdf.mjs se o PDF mudar.
+      2. toCardSource() reduz a imagem à resolução que este ecrã precisa
+         (cssFullW × PIXEL_SCALE) para não gastar memória em telemóveis.
+      3. copySlice() corta a fatia horizontal de cada painel; os canvases
+         dos painéis ficam do tamanho da fatia.
   */
   const PIXEL_SCALE = Math.min(window.devicePixelRatio >= 2 ? 3 : 2, 3);
 
-  async function renderFullPage(pdf, pageNum) {
-    const page = await pdf.getPage(pageNum);
-    const vp0  = page.getViewport({ scale: 1 });
+  /* Descarrega uma imagem do cartão reportando progresso (são os assets
+     mais pesados da página; a % de loading é um elemento visível). */
+  async function fetchCardImage(url, onProgress) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
+    const total = Number(res.headers.get('Content-Length')) || 0;
+    let blob;
+    if (res.body && total) {
+      const reader = res.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        onProgress(Math.min(1, loaded / total));
+      }
+      blob = new Blob(chunks);
+    } else {
+      blob = await res.blob();
+    }
+    onProgress(1);
+    const objUrl = URL.createObjectURL(blob);
+    try {
+      const img = new Image();
+      await new Promise((ok, fail) => {
+        img.onload = ok;
+        img.onerror = () => fail(new Error('decode failed: ' + url));
+        img.src = objUrl;
+      });
+      return img;
+    } finally {
+      /* revogar só depois do decode — o load já aconteceu */
+      setTimeout(() => URL.revokeObjectURL(objUrl), 0);
+    }
+  }
 
+  /* Reduz a imagem-fonte à resolução necessária para este ecrã. */
+  function toCardSource(img) {
     const cssFullW = gatefold.offsetWidth || 740;
-    const scale    = (cssFullW * PIXEL_SCALE) / vp0.width;
-    const vp       = page.getViewport({ scale });
-
-    const offscreen = document.createElement('canvas');
-    offscreen.width  = Math.round(vp.width);
-    offscreen.height = Math.round(vp.height);
-
-    await page.render({ canvasContext: offscreen.getContext('2d'), viewport: vp }).promise;
-    return offscreen;
+    const targetW  = Math.min(img.width, Math.round(cssFullW * PIXEL_SCALE));
+    if (targetW >= img.width) return img;
+    const c  = document.createElement('canvas');
+    c.width  = targetW;
+    c.height = Math.round(img.height * targetW / img.width);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c;
   }
 
   /* Copy a horizontal fraction [x0..x1] of src into dst */
@@ -1935,20 +1968,20 @@
     cardLoadPct.textContent = Math.round(pct) + '%';
   }
 
-  async function loadPDF() {
+  async function loadCardImages() {
     setLoadPct(0);
     try {
-      const loadTask = pdfjsLib.getDocument('./voucher_azul.pdf');
-      loadTask.onProgress = function(data) {
-        if (data.total) setLoadPct(Math.min(60, (data.loaded / data.total) * 60));
-      };
-      const pdf = await loadTask.promise;
-      setLoadPct(65);
+      let prog1 = 0, prog2 = 0;
+      const upd = () => setLoadPct(((prog1 + prog2) / 2) * 90);
 
-      const [page1, page2] = await Promise.all([
-        renderFullPage(pdf, 1).then(r => { setLoadPct(80); return r; }),  /* inner content */
-        renderFullPage(pdf, 2).then(r => { setLoadPct(90); return r; }),  /* exterior / cover */
+      const [img1, img2] = await Promise.all([
+        fetchCardImage('./img/voucher-p1.webp', f => { prog1 = f; upd(); }),  /* inner content */
+        fetchCardImage('./img/voucher-p2.webp', f => { prog2 = f; upd(); }),  /* exterior / cover */
       ]);
+
+      const page1 = toCardSource(img1);
+      const page2 = toCardSource(img2);
+      setLoadPct(95);
 
       /* Store page2 for dynamic cover swaps */
       page2Offscreen = page2;
@@ -1973,7 +2006,7 @@
         .forEach(id => document.getElementById(id).classList.add('ready'));
 
     } catch (err) {
-      console.warn('[fbr-voucher] PDF load failed:', err);
+      console.warn('[fbr-voucher] card image load failed:', err);
       setLoadPct(100);
       ['face-inner-center','face-inner-left','face-inner-right',
        'face-center-back','face-cover-left','face-cover-right']
@@ -2004,7 +2037,7 @@
 
     apply();
     updateCornerRadius(); /* set correct corners for initial closed state */
-    loadPDF(); /* reveals gatefold once canvases are ready */
+    loadCardImages(); /* reveals gatefold once canvases are ready */
 
     /* Entrance spring: (rotY=−22, entryY=26) → (0, 0) */
     startSpring();
@@ -2017,7 +2050,7 @@
   }
 
   /* Only initialise the 3D voucher when a code is present in the URL.
-     Avoids downloading the PDF unnecessarily on the search/landing page. */
+     Avoids downloading the card images unnecessarily on the search page. */
   if (window.location.pathname.replace(/^\//, '').split('/')[0].trim()) {
     init();
   }
@@ -2052,6 +2085,18 @@
 
       input.addEventListener('input', clearError);
 
+      /* Chegou aqui reencaminhado de /CODIGO que falhou? Mostrar porquê. */
+      const params  = new URLSearchParams(window.location.search);
+      const reason  = params.get('e');
+      const badCode = (params.get('c') || '').trim().slice(0, 20);
+      if (reason) {
+        if (badCode) input.value = badCode;
+        showError(reason === 'nf'
+          ? 'Não encontrámos nenhum vale com este código. Verifique o código impresso no cartão e tente novamente.'
+          : 'Não foi possível carregar o vale neste momento. Tente novamente dentro de instantes.');
+        history.replaceState(null, '', '/');
+      }
+
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         const val = input.value.trim().toUpperCase().replace(/\s+/g, '');
@@ -2068,10 +2113,24 @@
 
     /* ── Code present → load voucher data from API ────────────────── */
     (async function () {
+      let data = null;
       try {
         const res = await fetch('/api/voucher?code=' + encodeURIComponent(code));
-        if (!res.ok) return;
-        const data = await res.json();
+        if (!res.ok) {
+          /* Código errado ou API em baixo: sem isto o cartão ficava com os
+             nomes de exemplo ("Joana"...), parecendo um vale real errado. */
+          const reason = res.status === 404 ? 'nf' : 'err';
+          window.location.replace('/?e=' + reason + '&c=' + encodeURIComponent(code));
+          return;
+        }
+        data = await res.json();
+      } catch (err) {
+        console.warn('[fbr-voucher] Failed to load voucher data:', err);
+        window.location.replace('/?e=err&c=' + encodeURIComponent(code));
+        return;
+      }
+
+      {
 
         const elDe     = document.querySelector('.hw-de');
         const elPara   = document.querySelector('.hw-para');
@@ -2104,8 +2163,6 @@
           msgText.textContent = data.mensagem.trim();
           msgSection.classList.add('visible');
         }
-      } catch (err) {
-        console.warn('[fbr-voucher] Failed to load voucher data:', err);
       }
     })();
   })();
