@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="description" content="Vale presente digital Flores à Beira-Rio — Preservação floral artesanal em Portugal.">
   <meta name="theme-color" content="#3D6B5E">
   <link rel="icon" type="image/x-icon" href="favicon/favicon.ico">
@@ -12,20 +12,44 @@
   <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
   <title>Vale Presente · Flores à Beira-Rio</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Homemade+Apple&display=swap" rel="stylesheet">
-
   <style>
+    /* Fontes servidas localmente (privacidade RGPD: sem pedidos à Google
+       que exponham o IP do visitante). Jost é variable — um ficheiro por
+       subset cobre 300–500. Só latin + latin-ext (site PT/EN). */
     @font-face {
       font-family: 'TAN Memories';
       src: url('./fonts/TAN-MEMORIES.otf') format('opentype');
       font-style: normal;
+      font-display: swap;
     }
     @font-face {
       font-family: 'TAN Memories';
       src: url('./fonts/TAN-MEMORIES-Italic.otf') format('opentype');
       font-style: italic;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Jost';
+      font-style: normal;
+      font-weight: 300 500;
+      font-display: swap;
+      src: url('./fonts/jost-latin.woff2') format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Jost';
+      font-style: normal;
+      font-weight: 300 500;
+      font-display: swap;
+      src: url('./fonts/jost-latin-ext.woff2') format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+    @font-face {
+      font-family: 'Homemade Apple';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/homemade-apple-latin.woff2') format('woff2');
     }
 
     :root {
@@ -93,6 +117,43 @@
       transition: color 0.22s ease, background 0.22s ease;
     }
     .brand:hover { color: rgba(20,18,12,1); background: rgba(250,247,240,0.75); }
+
+    /* ── Selector de idioma ─────────────────────────────────────── */
+    .lang-switch {
+      position: fixed;
+      top: clamp(12px, 2.5vh, 24px);
+      right: clamp(12px, 2.5vw, 24px);
+      z-index: 101;
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 100px;
+      background: rgba(250, 247, 240, 0.55);
+      backdrop-filter: blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      border: 1px solid rgba(184,149,74,0.08);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+    .lang-opt {
+      appearance: none;
+      -webkit-appearance: none;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'Jost', system-ui, sans-serif;
+      font-size: clamp(11px, 1vw, 13px);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: rgba(20,18,12,0.5);
+      padding: 5px 11px;
+      border-radius: 100px;
+      transition: color 0.2s ease, background 0.2s ease;
+    }
+    .lang-opt:hover { color: rgba(20,18,12,0.85); }
+    .lang-opt.active {
+      color: #FAF7F0;
+      background: var(--verde);
+    }
 
     /* ── Scene ──────────────────────────────────────────────────── */
     .scene-wrap {
@@ -1190,12 +1251,18 @@
   </div>
   <!-- Text: positioned below seal -->
   <div class="env-text-wrap">
-    <p class="env-brand">Um presente para si</p>
-    <p class="env-prompt">· Toque para revelar ·</p>
+    <p class="env-brand" data-i18n="env.brand">Um presente para si</p>
+    <p class="env-prompt" data-i18n="env.prompt">· Toque para revelar ·</p>
   </div>
 </div>
 
 <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer" class="brand">Flores à Beira-Rio</a>
+
+<!-- Selector de idioma PT/EN -->
+<div class="lang-switch" id="lang-switch" role="group" aria-label="Idioma / Language">
+  <button type="button" class="lang-opt" data-lang="pt" aria-label="Português">PT</button>
+  <button type="button" class="lang-opt" data-lang="en" aria-label="English">EN</button>
+</div>
 
 <div class="bottom-ui" id="bottom-ui">
   <div class="hint" id="hint">
@@ -1203,10 +1270,10 @@
          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
       <path d="M8 12H3m0 0 3-3m-3 3 3 3M16 12h5m0 0-3-3m3 3-3 3"/>
     </svg>
-    <span id="hint-text">Clique para abrir · arraste para explorar</span>
+    <span id="hint-text" data-i18n="hint.desktop">Clique para abrir · arraste para explorar</span>
   </div>
   <div class="scroll-cue" id="scroll-cue">
-    <span>Deslize para saber mais</span>
+    <span data-i18n="scrollCue">Deslize para saber mais</span>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 5v14M5 15l7 7 7-7"/>
@@ -1218,9 +1285,9 @@
 <!-- Search / Landing page (shown when no code in URL) -->
 <section class="search-page" id="search-page" aria-label="Pesquisar vale presente">
   <div class="search-inner">
-    <p class="search-eyebrow">Vale Presente Digital</p>
-    <h1 class="search-title">O seu vale<br>presente</h1>
-    <p class="search-subtitle">Recebeu um vale físico? Introduza o código impresso no cartão para aceder ao seu vale digital.</p>
+    <p class="search-eyebrow" data-i18n="search.eyebrow">Vale Presente Digital</p>
+    <h1 class="search-title" data-i18n-html="search.title">O seu vale<br>presente</h1>
+    <p class="search-subtitle" data-i18n="search.subtitle">Recebeu um vale físico? Introduza o código impresso no cartão para aceder ao seu vale digital.</p>
 
     <form class="search-form" id="search-form" novalidate>
       <div class="search-input-wrap">
@@ -1233,16 +1300,17 @@
           autocorrect="off"
           spellcheck="false"
           placeholder="Código do vale  ·  ex: A1B2C3"
+          data-i18n-ph="search.placeholder"
           maxlength="20"
           aria-label="Código do vale presente"
         >
       </div>
       <p class="search-error" id="search-error" role="alert" aria-live="polite"></p>
-      <button type="submit" class="search-btn">Ver vale presente</button>
+      <button type="submit" class="search-btn" data-i18n="search.button">Ver vale presente</button>
     </form>
 
     <div class="search-divider"></div>
-    <p class="search-note">
+    <p class="search-note" data-i18n-html="search.note">
       O código encontra-se impresso no canto superior direito do cartão físico.<br>
       <strong>Dúvidas?</strong> Contacte-nos em <a href="mailto:info@floresabeirario.pt" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">info@floresabeirario.pt</a>
     </p>
@@ -1253,7 +1321,7 @@
 <section class="hero-section">
 <div class="scene-wrap">
   <div class="card-loading" id="card-loading">
-    <span class="card-loading-text">Vale Presente a carregar</span>
+    <span class="card-loading-text" data-i18n="cardLoading">Vale Presente a carregar</span>
     <span class="card-loading-pct" id="card-loading-pct">0%</span>
   </div>
   <div class="ground-shadow" id="ground-shadow"></div>
@@ -1266,7 +1334,7 @@
         <path d="M17 13.5a2 2 0 1 1 4 0V17c0 2.761-2.239 5-5 5H9c-2 0-3.5-1.5-3.5-3.5v-5.25a2 2 0 1 1 4 0V11"/>
       </svg>
     </div>
-    <span class="tap-cue-label">Toque para abrir</span>
+    <span class="tap-cue-label" data-i18n="tapCue">Toque para abrir</span>
   </div>
   <div class="scene">
     <div class="gatefold" id="gatefold">
@@ -1347,23 +1415,23 @@
 <div class="voucher-summary" id="voucher-summary" aria-label="Resumo do vale presente">
   <div class="vs-card">
     <div class="vs-item">
-      <p class="vs-label">De</p>
+      <p class="vs-label" data-i18n="vs.de">De</p>
       <p class="vs-value" id="vs-de">—</p>
     </div>
     <div class="vs-item">
-      <p class="vs-label">Para</p>
+      <p class="vs-label" data-i18n="vs.para">Para</p>
       <p class="vs-value" id="vs-para">—</p>
     </div>
     <div class="vs-item">
-      <p class="vs-label">Valor</p>
+      <p class="vs-label" data-i18n="vs.valor">Valor</p>
       <p class="vs-value" id="vs-valor">—</p>
     </div>
     <div class="vs-item">
-      <p class="vs-label">Válido até</p>
+      <p class="vs-label" data-i18n="vs.validade">Válido até</p>
       <p class="vs-value" id="vs-validade">—</p>
     </div>
     <div class="vs-item">
-      <p class="vs-label">Código</p>
+      <p class="vs-label" data-i18n="vs.codigo">Código</p>
       <p class="vs-value vs-code" id="vs-codigo">—</p>
     </div>
   </div>
@@ -1372,7 +1440,7 @@
 <!-- Mensagem do remetente (opcional) -->
 <div class="message-section" id="message-section" aria-label="Mensagem">
   <div class="message-inner">
-    <p class="message-label">Uma mensagem para si</p>
+    <p class="message-label" data-i18n="message.label">Uma mensagem para si</p>
     <p class="message-quote" id="message-text"></p>
   </div>
 </div>
@@ -1381,22 +1449,22 @@
 <section class="next-chapter">
   <div class="nc-inner">
     <div class="nc-eyebrow">
-      <p class="nc-label">Próximos passos</p>
+      <p class="nc-label" data-i18n="nc.label">Próximos passos</p>
     </div>
-    <h2 class="nc-title">Como utilizar<br>o seu vale</h2>
-    <p class="nc-subtitle">Este vale dá-lhe acesso a um serviço de preservação floral artesanal. Use-o para guardar as flores de um momento especial, seja um casamento, batizado, aniversário, ou qualquer outra ocasião.</p>
+    <h2 class="nc-title" data-i18n-html="nc.title">Como utilizar<br>o seu vale</h2>
+    <p class="nc-subtitle" data-i18n="nc.subtitle">Este vale dá-lhe acesso a um serviço de preservação floral artesanal. Use-o para guardar as flores de um momento especial, seja um casamento, batizado, aniversário, ou qualquer outra ocasião.</p>
 
     <div class="nc-steps">
 
       <div class="nc-step">
         <div class="nc-step-num">01</div>
         <div class="nc-step-body">
-          <h3>Visite o nosso site</h3>
-          <p>Descubra como funciona o processo de preservação floral e conheça todas as opções disponíveis para guardar as flores do momento que quer recordar para sempre.</p>
+          <h3 data-i18n="nc.s1.title">Visite o nosso site</h3>
+          <p data-i18n="nc.s1.body">Descubra como funciona o processo de preservação floral e conheça todas as opções disponíveis para guardar as flores do momento que quer recordar para sempre.</p>
         </div>
         <div class="nc-step-action">
           <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer" class="nc-link">
-            Visitar o site
+            <span data-i18n="nc.s1.cta">Visitar o site</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
         </div>
@@ -1405,15 +1473,15 @@
       <div class="nc-step">
         <div class="nc-step-num">02</div>
         <div class="nc-step-body">
-          <h3>Reserve a data da preservação</h3>
-          <p>Preencha o formulário e indique o código do seu vale presente, ou contacte-nos diretamente.</p>
-          <div class="nc-step-alert">
+          <h3 data-i18n="nc.s2.title">Reserve a data da preservação</h3>
+          <p data-i18n="nc.s2.body">Preencha o formulário e indique o código do seu vale presente, ou contacte-nos diretamente.</p>
+          <div class="nc-step-alert" data-i18n-html="nc.s2.alert">
             <strong>Importante:</strong> Pedimos que faça a sua reserva com o máximo de antecedência de forma a garantirmos vaga na sua data para a preservação das suas flores.
           </div>
         </div>
         <div class="nc-step-action">
           <a href="https://www.floresabeirario.pt/reservar-preservacao" target="_blank" rel="noopener noreferrer" class="nc-cta">
-            Reservar agora
+            <span data-i18n="nc.s2.cta">Reservar agora</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
         </div>
@@ -1425,13 +1493,13 @@
       <div class="nc-callout-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(184,149,74,0.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
       </div>
-      <div class="nc-callout-body">
+      <div class="nc-callout-body" data-i18n-html="nc.callout">
         <p>Ao preencher o formulário, não se esqueça de inserir o código impresso no seu vale presente. É através dele que confirmamos e ativamos a sua reserva.</p>
         <p>Se o custo dos quadros ou elementos extra que escolher for superior ao valor do vale, apenas pagará a diferença. Visite a nossa <a href="https://www.floresabeirario.pt/opcoes-e-precos" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">página de opções e preços</a> para conhecer a nossa oferta.</p>
       </div>
     </div>
 
-    <div class="terms-section">
+    <div class="terms-section" data-i18n-html="terms">
       <p><strong>Termos e condições:</strong> Este vale é válido apenas para os serviços de preservação floral da Flores à Beira-Rio. Não é convertível em dinheiro e não é reembolsável.</p>
     </div>
   </div>
@@ -1443,7 +1511,7 @@
 
     <div class="footer-brand">
       <span class="footer-logo">Flores à Beira-Rio</span>
-      <p class="footer-tagline">Especialistas em Preservação de Flores</p>
+      <p class="footer-tagline" data-i18n="footer.tagline">Especialistas em Preservação de Flores</p>
       <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer" class="footer-website-link">
         floresabeirario.pt
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M7 7h10v10"/></svg>
@@ -1451,7 +1519,7 @@
     </div>
 
     <div class="footer-contact">
-      <h4>Contacto</h4>
+      <h4 data-i18n="footer.contact">Contacto</h4>
       <ul>
         <li>
           <a href="mailto:info@floresabeirario.pt" class="contact-item">
@@ -1490,10 +1558,173 @@
 
   </div>
   <div class="footer-bottom">
-    <p>© 2026 Flores à Beira-Rio · Todos os direitos reservados</p>
+    <p data-i18n="footer.copyright">© 2026 Flores à Beira-Rio · Todos os direitos reservados</p>
     <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer">floresabeirario.pt</a>
   </div>
 </footer>
+
+<script>
+/* ── i18n (PT / EN) ──────────────────────────────────────────────────
+   Site estático sem framework. Cada elemento traduzível tem:
+     data-i18n="chave"       → textContent
+     data-i18n-html="chave"  → innerHTML (só para <br>/<strong>/<a>;
+                                o dicionário é 100% estático e autoral,
+                                nunca recebe dados do utilizador — seguro)
+     data-i18n-ph="chave"    → placeholder
+   O idioma escolhido persiste em localStorage; ?lang= tem prioridade.
+   window.I18N.t(chave) dá acesso às strings ao JS dinâmico (erros, etc.). */
+window.I18N = (function () {
+  const emailLink = 'info@floresabeirario.pt';
+  const dict = {
+    pt: {
+      'env.brand': 'Um presente para si',
+      'env.prompt': '· Toque para revelar ·',
+      'hint.desktop': 'Clique para abrir · arraste para explorar',
+      'hint.mobile': 'Toque para abrir · arraste para explorar',
+      'scrollCue': 'Deslize para saber mais',
+      'cardLoading': 'Vale Presente a carregar',
+      'tapCue': 'Toque para abrir',
+      'search.eyebrow': 'Vale Presente Digital',
+      'search.title': 'O seu vale<br>presente',
+      'search.subtitle': 'Recebeu um vale físico? Introduza o código impresso no cartão para aceder ao seu vale digital.',
+      'search.placeholder': 'Código do vale  ·  ex: A1B2C3',
+      'search.button': 'Ver vale presente',
+      'search.note': 'O código encontra-se impresso no canto superior direito do cartão físico.<br><strong>Dúvidas?</strong> Contacte-nos em <a href="mailto:' + emailLink + '" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">' + emailLink + '</a>',
+      'vs.de': 'De',
+      'vs.para': 'Para',
+      'vs.valor': 'Valor',
+      'vs.validade': 'Válido até',
+      'vs.codigo': 'Código',
+      'valor.prefix': 'de ',
+      'message.label': 'Uma mensagem para si',
+      'nc.label': 'Próximos passos',
+      'nc.title': 'Como utilizar<br>o seu vale',
+      'nc.subtitle': 'Este vale dá-lhe acesso a um serviço de preservação floral artesanal. Use-o para guardar as flores de um momento especial, seja um casamento, batizado, aniversário, ou qualquer outra ocasião.',
+      'nc.s1.title': 'Visite o nosso site',
+      'nc.s1.body': 'Descubra como funciona o processo de preservação floral e conheça todas as opções disponíveis para guardar as flores do momento que quer recordar para sempre.',
+      'nc.s1.cta': 'Visitar o site',
+      'nc.s2.title': 'Reserve a data da preservação',
+      'nc.s2.body': 'Preencha o formulário e indique o código do seu vale presente, ou contacte-nos diretamente.',
+      'nc.s2.alert': '<strong>Importante:</strong> Pedimos que faça a sua reserva com o máximo de antecedência de forma a garantirmos vaga na sua data para a preservação das suas flores.',
+      'nc.s2.cta': 'Reservar agora',
+      'nc.callout': '<p>Ao preencher o formulário, não se esqueça de inserir o código impresso no seu vale presente. É através dele que confirmamos e ativamos a sua reserva.</p><p>Se o custo dos quadros ou elementos extra que escolher for superior ao valor do vale, apenas pagará a diferença. Visite a nossa <a href="https://www.floresabeirario.pt/opcoes-e-precos" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">página de opções e preços</a> para conhecer a nossa oferta.</p>',
+      'terms': '<p><strong>Termos e condições:</strong> Este vale é válido apenas para os serviços de preservação floral da Flores à Beira-Rio. Não é convertível em dinheiro e não é reembolsável.</p>',
+      'footer.tagline': 'Especialistas em Preservação de Flores',
+      'footer.contact': 'Contacto',
+      'footer.copyright': '© 2026 Flores à Beira-Rio · Todos os direitos reservados',
+      'err.empty': 'Por favor introduza o código do vale.',
+      'err.nf': 'Não encontrámos nenhum vale com este código. Verifique o código impresso no cartão e tente novamente.',
+      'err.err': 'Não foi possível carregar o vale neste momento. Tente novamente dentro de instantes.',
+    },
+    en: {
+      'env.brand': 'A gift for you',
+      'env.prompt': '· Tap to reveal ·',
+      'hint.desktop': 'Click to open · drag to explore',
+      'hint.mobile': 'Tap to open · drag to explore',
+      'scrollCue': 'Scroll to learn more',
+      'cardLoading': 'Loading your gift card',
+      'tapCue': 'Tap to open',
+      'search.eyebrow': 'Digital Gift Voucher',
+      'search.title': 'Your gift<br>voucher',
+      'search.subtitle': 'Received a physical card? Enter the code printed on it to access your digital voucher.',
+      'search.placeholder': 'Voucher code  ·  e.g. A1B2C3',
+      'search.button': 'View gift voucher',
+      'search.note': 'The code is printed on the top-right corner of the physical card.<br><strong>Questions?</strong> Contact us at <a href="mailto:' + emailLink + '" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">' + emailLink + '</a>',
+      'vs.de': 'From',
+      'vs.para': 'To',
+      'vs.valor': 'Value',
+      'vs.validade': 'Valid until',
+      'vs.codigo': 'Code',
+      'valor.prefix': '',
+      'message.label': 'A message for you',
+      'nc.label': 'Next steps',
+      'nc.title': 'How to use<br>your voucher',
+      'nc.subtitle': 'This voucher gives you access to an artisanal flower preservation service. Use it to keep the flowers from a special moment, whether a wedding, a christening, a birthday, or any other occasion.',
+      'nc.s1.title': 'Visit our website',
+      'nc.s1.body': 'Discover how the flower preservation process works and explore all the options available to keep the flowers from the moment you want to remember forever.',
+      'nc.s1.cta': 'Visit the website',
+      'nc.s2.title': 'Book your preservation date',
+      'nc.s2.body': 'Fill in the form and enter your gift voucher code, or contact us directly.',
+      'nc.s2.alert': '<strong>Important:</strong> Please book as far in advance as possible so we can secure a slot on your date for preserving your flowers.',
+      'nc.s2.cta': 'Book now',
+      'nc.callout': '<p>When filling in the form, don\'t forget to enter the code printed on your gift voucher. That\'s how we confirm and activate your booking.</p><p>If the cost of the frames or extra elements you choose is higher than the voucher value, you\'ll only pay the difference. Visit our <a href="https://www.floresabeirario.pt/opcoes-e-precos" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-decoration-color:rgba(20,18,12,0.2)">options and prices page</a> to see what we offer.</p>',
+      'terms': '<p><strong>Terms and conditions:</strong> This voucher is valid only for Flores à Beira-Rio flower preservation services. It is not convertible into cash and is non-refundable.</p>',
+      'footer.tagline': 'Flower Preservation Specialists',
+      'footer.contact': 'Contact',
+      'footer.copyright': '© 2026 Flores à Beira-Rio · All rights reserved',
+      'err.empty': 'Please enter the voucher code.',
+      'err.nf': 'We couldn\'t find a voucher with this code. Check the code printed on the card and try again.',
+      'err.err': 'We couldn\'t load the voucher right now. Please try again in a moment.',
+    },
+  };
+
+  const STORAGE_KEY = 'fbr_lang';
+  const mqMobile = window.matchMedia('(max-width:600px)');
+  let current = 'pt';
+
+  function t(key) {
+    /* checar existência da chave, não truthiness: '' é tradução legítima
+       (ex.: valor.prefix em EN) e não deve cair no fallback PT */
+    const cur = dict[current];
+    if (cur && Object.prototype.hasOwnProperty.call(cur, key)) return cur[key];
+    if (Object.prototype.hasOwnProperty.call(dict.pt, key)) return dict.pt[key];
+    return '';
+  }
+
+  function apply() {
+    document.documentElement.lang = current;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const v = t(el.getAttribute('data-i18n'));
+      if (v) el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => {
+      const v = t(el.getAttribute('data-i18n-html'));
+      if (v) el.innerHTML = v; // dicionário estático autoral — sem input do utilizador
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const v = t(el.getAttribute('data-i18n-ph'));
+      if (v) el.setAttribute('placeholder', v);
+    });
+    /* o hint depende do dispositivo (toque vs. rato) */
+    const hintText = document.getElementById('hint-text');
+    if (hintText) hintText.textContent = t(mqMobile.matches ? 'hint.mobile' : 'hint.desktop');
+    /* botões do selector */
+    document.querySelectorAll('.lang-opt').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-lang') === current);
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === current));
+    });
+    document.dispatchEvent(new CustomEvent('langchange', { detail: { lang: current } }));
+  }
+
+  function setLang(lang, persist) {
+    if (lang !== 'pt' && lang !== 'en') return;
+    current = lang;
+    if (persist) { try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {} }
+    apply();
+  }
+
+  function detectInitial() {
+    const params = new URLSearchParams(window.location.search);
+    const q = (params.get('lang') || '').toLowerCase();
+    if (q === 'pt' || q === 'en') return q;
+    let stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (stored === 'pt' || stored === 'en') return stored;
+    const nav = (navigator.language || 'pt').toLowerCase();
+    return nav.startsWith('pt') ? 'pt' : (nav.startsWith('en') ? 'en' : 'pt');
+  }
+
+  document.querySelectorAll('.lang-opt').forEach(b => {
+    b.addEventListener('click', () => setLang(b.getAttribute('data-lang'), true));
+  });
+  /* se o dispositivo mudar entre toque/rato (raro), reaplica o hint */
+  mqMobile.addEventListener('change', apply);
+
+  setLang(detectInitial(), false);
+
+  return { t, setLang, get lang() { return current; } };
+})();
+</script>
 
 <script>
   /* ── DOM refs ───────────────────────────────────────────────────── */
@@ -2030,10 +2261,7 @@
     fold  = 0;
     tFold = 0;
 
-    if (isMobile()) {
-      const hintText = document.getElementById('hint-text');
-      if (hintText) hintText.textContent = 'Toque para abrir · arraste para explorar';
-    }
+    /* o texto do hint (toque vs. clique, PT vs. EN) é do motor i18n */
 
     apply();
     updateCornerRadius(); /* set correct corners for initial closed state */
@@ -2091,9 +2319,13 @@
       const badCode = (params.get('c') || '').trim().slice(0, 20);
       if (reason) {
         if (badCode) input.value = badCode;
-        showError(reason === 'nf'
-          ? 'Não encontrámos nenhum vale com este código. Verifique o código impresso no cartão e tente novamente.'
-          : 'Não foi possível carregar o vale neste momento. Tente novamente dentro de instantes.');
+        showError(window.I18N.t(reason === 'nf' ? 'err.nf' : 'err.err'));
+        /* re-traduz a mensagem se o utilizador trocar de idioma */
+        document.addEventListener('langchange', function () {
+          if (err.classList.contains('show')) {
+            showError(window.I18N.t(reason === 'nf' ? 'err.nf' : 'err.err'));
+          }
+        });
         history.replaceState(null, '', '/');
       }
 
@@ -2101,7 +2333,7 @@
         e.preventDefault();
         const val = input.value.trim().toUpperCase().replace(/\s+/g, '');
         if (!val) {
-          showError('Por favor introduza o código do vale.');
+          showError(window.I18N.t('err.empty'));
           input.focus();
           return;
         }
@@ -2139,8 +2371,12 @@
 
         if (elDe)     elDe.textContent     = data.remetente;
         if (elPara)   elPara.textContent   = data.destinatario;
-        if (elValor)  elValor.textContent  = 'de ' + data.valor;
         if (elCodigo) elCodigo.textContent = data.codigo;
+        if (elValor) {
+          const renderValor = () => { elValor.textContent = window.I18N.t('valor.prefix') + data.valor; };
+          renderValor();
+          document.addEventListener('langchange', renderValor);
+        }
 
         // Populate summary strip
         const summary = document.getElementById('voucher-summary');
