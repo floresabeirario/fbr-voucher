@@ -1729,6 +1729,15 @@
 </footer>
 
 <script>
+/* Refresh começa SEMPRE no topo (pedido da Maria): a página é uma
+   experiência que abre no envelope — a restauração de scroll do browser
+   devolvia o utilizador ao ponto onde estava antes do refresh. */
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+window.addEventListener('pageshow', function () { window.scrollTo(0, 0); });
+</script>
+
+<script>
 /* ── i18n (PT / EN) ──────────────────────────────────────────────────
    Site estático sem framework. Cada elemento traduzível tem:
      data-i18n="chave"       → textContent

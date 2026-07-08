@@ -148,6 +148,12 @@ try {
     await page.waitForTimeout(200);
     check('vale EN: label "Valid until"', (await page.locator('.vs-label').nth(3).textContent()) === 'Valid until');
     check('vale EN: valor sem prefixo', (await page.locator('.hw-valor').textContent()) === '350 €');
+    /* refresh volta sempre ao topo (scrollRestoration manual) */
+    await page.mouse.wheel(0, 1200);
+    await page.waitForTimeout(400);
+    await page.reload();
+    await page.waitForTimeout(700);
+    check('vale: refresh volta ao topo', (await page.evaluate(() => window.scrollY)) === 0);
     await page.close();
   }
 
