@@ -73,7 +73,10 @@ module.exports = async function handler(req, res) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host  = req.headers.host || '';
   const pageUrl  = `${proto}://${host}/${encodeURIComponent(code)}`;
-  const imageUrl = `${proto}://${host}/favicon/web-app-manifest-512x512.png`;
+  // Imagem dedicada 1200×630 (capa fechada do cartão) — gerada por
+  // scripts/render-og.mjs. Muito melhor no preview do WhatsApp do que
+  // o favicon 512px que se usava antes.
+  const imageUrl = `${proto}://${host}/img/og-voucher.jpg`;
 
   const ogTags = `
   <meta property="og:type" content="website">
@@ -81,6 +84,9 @@ module.exports = async function handler(req, res) {
   <meta property="og:title" content="${escapeHtml(title)}">
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:image" content="${escapeHtml(imageUrl)}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Cartão vale presente Flores à Beira-Rio">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${escapeHtml(title)}">
   <meta name="twitter:description" content="${escapeHtml(description)}">

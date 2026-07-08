@@ -24,6 +24,10 @@ const VALID = {
   codigo: 'TESTE1', remetente: 'Maria João', destinatario: 'Sofia e Miguel',
   valor: '350 €', mensagem: 'Que as vossas flores durem para sempre.', validade: '07/2028',
 };
+const EXPIRED = {
+  codigo: 'VELHO1', remetente: 'Rui', destinatario: 'Beatriz',
+  valor: '300 €', mensagem: '', validade: '01/2020',
+};
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.webp': 'image/webp', '.ico': 'image/x-icon',
@@ -37,6 +41,7 @@ const server = http.createServer((req, res) => {
   if (p === '/api/voucher') {
     const code = (u.searchParams.get('code') || '').toUpperCase();
     if (code === 'TESTE1') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(VALID)); }
+    if (code === 'VELHO1') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(EXPIRED)); }
     res.writeHead(404, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ error: 'Voucher not found' }));
   }
   let file = path.join(root, p === '/' ? 'index.html' : p);
@@ -62,8 +67,9 @@ const browser = await chromium.launch({
   channel: smokeChannel === 'bundled' ? undefined : smokeChannel,
   headless: true,
 });
-async function newPage(viewport, locale = 'pt-PT') {
-  const ctx = await browser.newContext({ viewport, locale });
+async function newPage(viewport, locale = 'pt-PT', ctxExtra = {}) {
+  const ctx = await browser.newContext({ viewport, locale, ...ctxExtra });
+  try { await ctx.grantPermissions(['clipboard-read', 'clipboard-write']); } catch (e) {}
   const page = await ctx.newPage();
   page.errs = [];
   page.on('pageerror', e => page.errs.push('pageerror: ' + e.message));
@@ -112,7 +118,11 @@ try {
     const page = await newPage({ width: 1280, height: 900 });
     await page.goto(BASE + '/TESTE1');
     await page.waitForSelector('#env-overlay', { timeout: 5000 });
+    /* envelope personalizado com o nome do destinatário (dados da API) */
+    await page.waitForTimeout(400);
+    check('vale: envelope personalizado', (await page.locator('.env-brand').textContent()) === 'Para Sofia e Miguel');
     await page.click('#env-overlay');
+    check('vale: pétalas ao abrir', (await page.locator('.petal-burst').count()) === 1);
     await page.waitForSelector('.gatefold.loaded', { timeout: 15000 });
     await page.waitForTimeout(1500);
     check('vale: remetente', (await page.locator('.hw-de').textContent()) === 'Maria João');
@@ -121,6 +131,16 @@ try {
     check('vale: resumo visível', await page.locator('#voucher-summary').isVisible());
     check('vale: label "Válido até" PT', (await page.locator('.vs-label').nth(3).textContent()) === 'Válido até');
     check('vale: loading 100%', (await page.locator('#card-loading-pct').textContent()) === '100%');
+    /* copiar código: feedback + clipboard */
+    check('vale: partilhar visível', await page.locator('#share-row').isVisible());
+    check('vale: aviso expirado escondido', !(await page.locator('#expired-section').isVisible()));
+    check('vale: CTA com código', (await page.locator('.nc-cta').getAttribute('href')).includes('vale=TESTE1'));
+    await page.click('#vs-copy');
+    await page.waitForTimeout(200);
+    check('vale: feedback "Copiado ✓"', (await page.locator('#vs-codigo-label').textContent()) === 'Copiado ✓');
+    let clip = '';
+    try { clip = await page.evaluate(() => navigator.clipboard.readText()); } catch (e) {}
+    check('vale: código copiado', clip === 'TESTE1', clip);
     check('vale: sem erros JS', page.errs.length === 0, page.errs.join(' | '));
     await shot(page, '3-voucher-pt');
     /* toggle EN no vale: label e prefixo do valor mudam */
@@ -157,6 +177,41 @@ try {
     check('mobile/EN-locale: default EN', (await page.locator('html').getAttribute('lang')) === 'en');
     check('mobile: sem erros JS', page.errs.length === 0, page.errs.join(' | '));
     await shot(page, '5-mobile-en');
+    await page.close();
+  }
+
+  /* 6 — vale expirado: aviso discreto visível */
+  {
+    const page = await newPage({ width: 1280, height: 900 });
+    await page.goto(BASE + '/VELHO1');
+    await page.waitForSelector('#env-overlay', { timeout: 5000 });
+    await page.click('#env-overlay'); /* abrir o envelope — senão o overlay intercepta cliques */
+    await page.waitForTimeout(1600);  /* overlay removido do DOM aos 1350ms */
+    check('expirado: aviso visível', await page.locator('#expired-section').isVisible());
+    check('expirado: texto PT', (await page.locator('#expired-note').textContent()).includes('expirou em 01/2020'));
+    /* re-traduz ao trocar de idioma */
+    await page.click('.lang-opt[data-lang="en"]');
+    await page.waitForTimeout(200);
+    check('expirado EN: texto re-traduzido', (await page.locator('#expired-note').textContent()).includes('expired in 01/2020'));
+    check('expirado: sem erros JS', page.errs.length === 0, page.errs.join(' | '));
+    await shot(page, '6-expired');
+    await page.close();
+  }
+
+  /* 7 — reduced motion: cartão abre sem mola, sem pétalas, sem erros */
+  {
+    const page = await newPage({ width: 1280, height: 900 }, 'pt-PT', { reducedMotion: 'reduce' });
+    await page.goto(BASE + '/TESTE1');
+    await page.waitForSelector('#env-overlay', { timeout: 5000 });
+    await page.click('#env-overlay');
+    check('reduced: sem pétalas', (await page.locator('.petal-burst').count()) === 0);
+    await page.waitForSelector('.gatefold.loaded', { timeout: 15000 });
+    await page.waitForTimeout(1600); /* overlay do envelope é removido aos 1350ms */
+    await page.click('.gatefold', { position: { x: 20, y: 20 } });
+    await page.waitForTimeout(300);
+    check('reduced: cartão abre (voucher-open)', await page.evaluate(() => document.body.classList.contains('voucher-open')));
+    check('reduced: sem erros JS', page.errs.length === 0, page.errs.join(' | '));
+    await shot(page, '7-reduced-motion');
     await page.close();
   }
 } finally {
