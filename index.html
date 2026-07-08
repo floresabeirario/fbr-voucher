@@ -100,11 +100,11 @@
     }
 
     /* ── Brand ──────────────────────────────────────────────────────
-       Wordmark solto, sem pílula/caixa (a Maria achou a cápsula estranha).
-       position absolute (não fixed): sai com o scroll em vez de pairar
-       sobre o cartão — era só por isso que a pílula tinha blur. */
+       Wordmark solto, sem pílula/caixa (a Maria achou a cápsula estranha),
+       mas sempre visível no scroll (fixed). A legibilidade sobre o cartão
+       vem do véu de gradiente .brand-scrim, não de uma caixa. */
     .brand {
-      position: absolute;
+      position: fixed;
       top: clamp(16px, 3vh, 28px);
       left: 50%;
       transform: translateX(-50%);
@@ -119,6 +119,19 @@
       transition: color 0.22s ease;
     }
     .brand:hover { color: rgba(20,18,12,1); }
+    /* Véu creme suave no topo do viewport: dá contraste ao wordmark e ao
+       selector PT/EN quando o cartão passa por baixo no scroll */
+    .brand-scrim {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: clamp(72px, 11vh, 104px);
+      z-index: 99;
+      pointer-events: none;
+      background: linear-gradient(to bottom,
+        rgba(250,247,240,0.96) 0%,
+        rgba(250,247,240,0.75) 55%,
+        transparent 100%);
+    }
 
     /* ── Selector de idioma ─────────────────────────────────────── */
     .lang-switch {
@@ -1279,7 +1292,12 @@
       color: rgba(20,18,12,0.66);
       letter-spacing: 0.02em;
       line-height: 1;
+      /* Só aparece quando o texto final é conhecido (genérico ou
+         personalizado) — evita o flash "Um presente para si" → nome */
+      opacity: 0;
+      transition: opacity 0.6s ease;
     }
+    .env-brand.show { opacity: 1; }
     /* Envelope personalizado ("Para {destinatário}") — nomes longos
        podem precisar de quebrar linha; o wrap pai tem nowrap */
     .env-brand--nome {
@@ -1386,6 +1404,7 @@
   </div>
 </div>
 
+<div class="brand-scrim" aria-hidden="true"></div>
 <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer" class="brand">Flores à Beira-Rio</a>
 
 <!-- Selector de idioma PT/EN -->
@@ -2474,6 +2493,8 @@ window.I18N = (function () {
       document.querySelector('.bottom-ui').style.display     = 'none';
       document.getElementById('message-section').style.display = 'none';
       document.querySelector('.brand').style.position       = 'absolute';
+      const brandScrim = document.querySelector('.brand-scrim');
+      if (brandScrim) brandScrim.style.display = 'none';
 
       const form  = document.getElementById('search-form');
       const input = document.getElementById('search-input');
@@ -2557,17 +2578,20 @@ window.I18N = (function () {
         }
 
         // Envelope personalizado: "Para {destinatário}" em vez do genérico.
-        // O fetch corre em paralelo com o intro — se o envelope ainda estiver
-        // fechado quando os dados chegam, mostra o nome de quem recebe.
+        // O título começa invisível (opacity 0) e só se revela aqui, já com
+        // o texto final — evita o flash "Um presente para si" → nome.
         const envBrand = document.querySelector('.env-brand');
-        if (envBrand && data.destinatario) {
-          envBrand.classList.add('env-brand--nome');
-          envBrand.removeAttribute('data-i18n'); // deixa de ser reescrito pelo i18n
-          const renderEnv = () => {
-            envBrand.textContent = window.I18N.t('env.para') + ' ' + data.destinatario;
-          };
-          renderEnv();
-          document.addEventListener('langchange', renderEnv);
+        if (envBrand) {
+          if (data.destinatario) {
+            envBrand.classList.add('env-brand--nome');
+            envBrand.removeAttribute('data-i18n'); // deixa de ser reescrito pelo i18n
+            const renderEnv = () => {
+              envBrand.textContent = window.I18N.t('env.para') + ' ' + data.destinatario;
+            };
+            renderEnv();
+            document.addEventListener('langchange', renderEnv);
+          }
+          envBrand.classList.add('show');
         }
 
         // Populate summary strip
@@ -2712,6 +2736,13 @@ window.I18N = (function () {
     if (bottomFlaps) bottomFlaps.style.display = 'none';
     return;
   }
+
+  /* Fallback: se a API demorar mais de 2s, revela o título genérico em
+     vez de deixar o envelope sem texto (o fade suaviza qualquer troca) */
+  setTimeout(function () {
+    var b = document.querySelector('.env-brand');
+    if (b) b.classList.add('show');
+  }, 2000);
 
   /* Pétalas a cair quando o envelope abre — micro-animação única.
      Formas irregulares vistas de lado (nada de simetria radial),
