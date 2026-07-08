@@ -1,0 +1,7 @@
+# Sem dependências npm (site estático); só as actions. Ver docs/REPOS.md no fbr-admin.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

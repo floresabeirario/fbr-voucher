@@ -55,7 +55,13 @@ const check = (name, ok, extra = '') => {
   if (!ok) failures++;
 };
 
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+// Canal por env: local usa o Edge do Windows (default); na CI (ubuntu)
+// corre com SMOKE_CHANNEL=bundled → chromium instalado pelo playwright.
+const smokeChannel = process.env.SMOKE_CHANNEL || 'msedge';
+const browser = await chromium.launch({
+  channel: smokeChannel === 'bundled' ? undefined : smokeChannel,
+  headless: true,
+});
 async function newPage(viewport, locale = 'pt-PT') {
   const ctx = await browser.newContext({ viewport, locale });
   const page = await ctx.newPage();

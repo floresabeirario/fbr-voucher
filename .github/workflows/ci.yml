@@ -1,0 +1,27 @@
+# ============================================================
+# CI — corre o smoke auto-contido (mock do deploy + browser headless,
+# 29 verificações) em cada push/PR. O site é estático + 2 fns
+# serverless, não há build; o smoke É a verificação.
+# ============================================================
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar playwright + chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Smoke (29 verificações)
+        env:
+          SMOKE_CHANNEL: bundled
+        run: node scripts/smoke.mjs
