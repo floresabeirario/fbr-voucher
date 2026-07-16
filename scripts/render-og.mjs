@@ -1,7 +1,7 @@
 // Gera img/og-voucher.jpg (1200×630) — imagem Open Graph usada nas
-// pré-visualizações de partilha (WhatsApp/redes). Mostra a capa fechada
-// do cartão sobre o fundo creme da marca. Correr sempre que o design
-// do cartão (voucher-p2.webp) mudar:
+// pré-visualizações de partilha (WhatsApp/redes). Mostra o presente azul
+// do favicon sobre o fundo creme da marca (pedido da Maria, 16/07:
+// o preview deve ser o presente azul, não a capa do cartão).
 //
 //   npm install --no-save playwright-core   (uma vez)
 //   node scripts/render-og.mjs
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = 8127;
 
-const MIME = { '.html': 'text/html; charset=utf-8', '.webp': 'image/webp' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.webp': 'image/webp', '.png': 'image/png' };
 const server = http.createServer((req, res) => {
   const urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   const file = path.join(root, urlPath);
@@ -27,11 +27,9 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(file).pipe(res);
 }).listen(PORT);
 
-// Capa fechada = quartos exteriores da página 2 lado a lado
-// (mesma fatia que o site usa no estado fechado). Proporção da capa:
-// meia folha A4 landscape → (297/2)/210 ≈ 0.7071 (largura/altura).
-const CARD_H = 470;
-const CARD_W = Math.round(CARD_H * (297 / 2) / 210);
+// Presente azul do favicon (PNG 512×512 transparente), em grande.
+// 1200×630 é a proporção que o WhatsApp mostra como preview largo.
+const GIFT_SIZE = 560;
 
 const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
@@ -46,33 +44,21 @@ const html = `<!DOCTYPE html>
   }
   .scene { position: relative; }
   .ground {
-    position: absolute; left: 50%; bottom: -26px; transform: translateX(-50%);
-    width: 92%; height: 42px;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.45) 0%, transparent 68%);
-    filter: blur(12px);
+    position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+    width: 78%; height: 44px;
+    background: radial-gradient(ellipse, rgba(61,80,140,0.30) 0%, transparent 68%);
+    filter: blur(14px);
   }
-  .card {
+  .gift {
     position: relative;
-    width: ${CARD_W}px; height: ${CARD_H}px;
-    display: flex;
-    transform: rotate(-1.5deg);
-    box-shadow: 0 26px 60px rgba(0,0,0,0.20), 0 6px 16px rgba(0,0,0,0.10);
+    width: ${GIFT_SIZE}px; height: ${GIFT_SIZE}px;
+    display: block;
   }
-  .half {
-    width: 50%; height: 100%;
-    background-image: url('/img/voucher-p2.webp');
-    background-size: 400% 100%;
-    background-repeat: no-repeat;
-  }
-  /* Estado fechado do site: flap esquerdo = página 2 [75–100%],
-     flap direito = página 2 [0–25%] (ver updateCoverCanvases) */
-  .half.left  { background-position: 100% 0; }
-  .half.right { background-position: 0% 0; }
 </style></head>
 <body>
   <div class="scene">
     <div class="ground"></div>
-    <div class="card"><div class="half left"></div><div class="half right"></div></div>
+    <img class="gift" src="/favicon/web-app-manifest-512x512.png" alt="">
   </div>
 </body></html>`;
 
@@ -80,7 +66,7 @@ const browser = await chromium.launch({ channel: 'msedge', headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
   await page.goto(`http://localhost:${PORT}/index.html`); // origem para URLs relativos
-  await page.setContent(html.replace("url('/img/", `url('http://localhost:${PORT}/img/`), { waitUntil: 'networkidle' });
+  await page.setContent(html.replace('src="/favicon/', `src="http://localhost:${PORT}/favicon/`), { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
   const out = path.join(root, 'img', 'og-voucher.jpg');
   await page.screenshot({ path: out, type: 'jpeg', quality: 85 });
