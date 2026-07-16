@@ -73,10 +73,11 @@ module.exports = async function handler(req, res) {
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const host  = req.headers.host || '';
   const pageUrl  = `${proto}://${host}/${encodeURIComponent(code)}`;
-  // Imagem dedicada 1200×630 (capa fechada do cartão) — gerada por
-  // scripts/render-og.mjs. Muito melhor no preview do WhatsApp do que
-  // o favicon 512px que se usava antes.
-  const imageUrl = `${proto}://${host}/img/og-voucher.jpg`;
+  // Imagem dedicada 1200×630 (presente azul do favicon) — gerada por
+  // scripts/render-og.mjs. O ?v= força a Meta a re-descarregar quando a
+  // imagem muda (ela guarda cache por URL exacto): incrementar a cada
+  // redesign da imagem.
+  const imageUrl = `${proto}://${host}/img/og-voucher.jpg?v=2`;
 
   const ogTags = `
   <meta property="og:type" content="website">
