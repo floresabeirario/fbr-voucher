@@ -2,9 +2,11 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <!-- Zoom do browser permitido (acessibilidade). O pinch custom do cartão
-       está protegido por touch-action: pan-y no .hero-section. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Zoom do browser desactivado: no browser interno do WhatsApp um pinch
+       acidental deixava a página presa com zoom (elementos fixed descentrados,
+       cartão cortado) e sem forma óbvia de voltar atrás. O cartão tem
+       pinch-zoom próprio em JS e o resto do texto é grande. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="robots" content="noindex, nofollow">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
   <meta name="description" content="Vale presente digital Flores à Beira-Rio — Preservação floral artesanal em Portugal.">
@@ -89,9 +91,10 @@
       padding-top: clamp(50px, 8vh, 80px);
       padding-bottom: clamp(40px, 6vh, 60px);
       position: relative;
-      /* O zoom do browser está activo no resto da página (acessibilidade),
-         mas aqui é o pinch custom do cartão que manda — pan-y bloqueia o
-         pinch-zoom nativo dentro do hero sem afectar o scroll vertical. */
+      /* Aqui é o pinch custom do cartão que manda — pan-y bloqueia o
+         pinch-zoom nativo dentro do hero sem afectar o scroll vertical.
+         (O zoom da página está desactivado no viewport; isto é reforço
+         para browsers que ignoram user-scalable=no.) */
       touch-action: pan-y;
       background: #FAF7F0;
       background-image:
@@ -1164,7 +1167,9 @@
       background: transparent; /* flaps tile 100% of viewport — no fill needed */
       cursor: pointer;
       overflow: hidden;
-      touch-action: manipulation;
+      /* pan-y (e não manipulation): manipulation permite pinch-zoom da página,
+         que era como o envelope ficava com zoom preso nos browsers in-app */
+      touch-action: pan-y;
     }
     #env-overlay.env-exit {
       transform: translateY(-105%);
@@ -2222,8 +2227,8 @@ window.I18N = (function () {
   // 2-finger pinch at window level — works anywhere on screen (side panels included)
   window.addEventListener('touchstart', e => {
     if (e.touches.length !== 2 || !isOpen || !isMobile()) return;
-    /* Só dentro do hero: fora dele o pinch é do browser (zoom da página,
-       agora permitido pelo viewport) e não deve mexer no cartão. */
+    /* Só dentro do hero: fora dele um pinch não deve mexer no cartão
+       (e o zoom da página está desactivado no viewport). */
     if (!e.target || !e.target.closest || !e.target.closest('.hero-section')) return;
     if (autoZoomTimer) { clearTimeout(autoZoomTimer); autoZoomTimer = null; }
     pinching       = true;
