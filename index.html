@@ -136,6 +136,38 @@
         transparent 100%);
     }
 
+    /* ── Selo de exemplo (só no vale de demonstração /EXEMPLO) ──── */
+    .demo-badge {
+      position: fixed;
+      top: clamp(12px, 2.5vh, 24px);
+      left: clamp(12px, 2.5vw, 24px);
+      z-index: 101;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px 5px 10px;
+      border-radius: 100px;
+      font-family: 'Jost', system-ui, sans-serif;
+      font-size: clamp(10px, 1vw, 12px);
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #8a6d1f;
+      background: rgba(250, 247, 240, 0.62);
+      backdrop-filter: blur(14px) saturate(1.4);
+      -webkit-backdrop-filter: blur(14px) saturate(1.4);
+      border: 1px solid rgba(184,149,74,0.28);
+      box-shadow: 0 2px 20px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+    .demo-badge.visible { display: inline-flex; }
+    .demo-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #b8954a;
+      flex: none;
+    }
+
     /* ── Selector de idioma ─────────────────────────────────────── */
     .lang-switch {
       position: fixed;
@@ -1412,6 +1444,9 @@
 <div class="brand-scrim" aria-hidden="true"></div>
 <a href="https://www.floresabeirario.pt/" target="_blank" rel="noopener noreferrer" class="brand">Flores à Beira-Rio</a>
 
+<!-- Selo "Exemplo": só fica visível no vale de demonstração (/EXEMPLO) -->
+<div class="demo-badge" id="demo-badge"><span data-i18n="exemplo.selo">Exemplo</span></div>
+
 <!-- Selector de idioma PT/EN -->
 <div class="lang-switch" id="lang-switch" role="group" aria-label="Idioma / Language">
   <button type="button" class="lang-opt" data-lang="pt" aria-label="Português">PT</button>
@@ -1778,6 +1813,8 @@ window.I18N = (function () {
       'vs.copied': 'Copiado ✓',
       'valor.prefix': 'de ',
       'env.para': 'Para',
+      'exemplo.selo': 'Exemplo',
+      'exemplo.msg': 'Para eternizarem as flores do vosso grande dia ✿ Com todo o carinho.',
       'share.btn': 'Partilhar este vale',
       'share.copied': 'Link copiado ✓',
       'expired.text': 'Este vale expirou em {v}. Contacte-nos para verificarmos as opções disponíveis.',
@@ -1824,6 +1861,8 @@ window.I18N = (function () {
       'vs.copied': 'Copied ✓',
       'valor.prefix': '',
       'env.para': 'For',
+      'exemplo.selo': 'Example',
+      'exemplo.msg': 'To keep the flowers from your special day forever ✿ With all our love.',
       'share.btn': 'Share this voucher',
       'share.copied': 'Link copied ✓',
       'expired.text': 'This voucher expired in {v}. Contact us to check the available options.',
@@ -2577,6 +2616,12 @@ window.I18N = (function () {
 
       {
 
+        // Vale de exemplo (demonstração): revela o selo "Exemplo".
+        if (data.exemplo) {
+          const badge = document.getElementById('demo-badge');
+          if (badge) badge.classList.add('visible');
+        }
+
         const elDe     = document.querySelector('.hw-de');
         const elPara   = document.querySelector('.hw-para');
         const elValor  = document.querySelector('.hw-valor');
@@ -2667,8 +2712,10 @@ window.I18N = (function () {
           });
         }
 
-        // CTA de reserva leva o código na URL (o formulário pode pré-preenchê-lo)
-        if (data.codigo) {
+        // CTA de reserva leva o código na URL (o formulário pode pré-preenchê-lo).
+        // No exemplo NÃO se anexa o código: é fictício e falharia a verificação
+        // do vale no formulário de reserva.
+        if (data.codigo && !data.exemplo) {
           document.querySelectorAll('a.nc-cta').forEach((a) => {
             try {
               const u = new URL(a.href);
@@ -2726,7 +2773,13 @@ window.I18N = (function () {
         // Show optional sender message
         const msgSection = document.getElementById('message-section');
         const msgText    = document.getElementById('message-text');
-        if (msgSection && msgText && data.mensagem && data.mensagem.trim()) {
+        if (data.exemplo) {
+          // Mensagem do exemplo é nossa: localiza-se via I18N (PT/EN).
+          const renderMsg = () => { msgText.textContent = window.I18N.t('exemplo.msg'); };
+          renderMsg();
+          document.addEventListener('langchange', renderMsg);
+          msgSection.classList.add('visible');
+        } else if (msgSection && msgText && data.mensagem && data.mensagem.trim()) {
           msgText.textContent = data.mensagem.trim();
           msgSection.classList.add('visible');
         }

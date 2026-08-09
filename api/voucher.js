@@ -18,6 +18,20 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 const isRateLimited = createRateLimiter();
 
+// Vale de exemplo para o site (floresabeirario.pt/vale-presente linka para
+// /EXEMPLO). Dados fictícios de um casal — NÃO existe na BD, por isso é
+// tratado aqui antes de qualquer lookup. O selo "Exemplo" no cartão e a
+// mensagem são localizados no cliente (index.html) via I18N.
+const DEMO_CODES = new Set(['EXEMPLO', 'EXAMPLE']);
+
+function demoExpiry() {
+  // Validade sempre no futuro (2 anos) para o exemplo nunca aparecer expirado.
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + 2);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-01`;
+}
+
 function formatValidade(isoDate) {
   if (!isoDate) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
@@ -47,6 +61,20 @@ module.exports = async function handler(req, res) {
 
   if (!code) {
     return res.status(400).json({ error: 'Missing code' });
+  }
+
+  // Vale de exemplo (demonstração no site) — dados fictícios de um casal.
+  if (DEMO_CODES.has(String(code).trim().toUpperCase())) {
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).json({
+      codigo:       'EXEMPLO',
+      remetente:    'Mariana',
+      destinatario: 'Sofia & Miguel',
+      valor:        formatValor(400),
+      mensagem:     'Para eternizarem as flores do vosso grande dia ✿ Com todo o carinho.',
+      validade:     formatValidade(demoExpiry()),
+      exemplo:      true,
+    });
   }
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
